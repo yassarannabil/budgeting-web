@@ -1,12 +1,14 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
 import { useTransactions } from '@/contexts/TransactionContext';
 import type { SuggestBudgetsInput, SuggestBudgetsOutput } from '@/ai/flows/suggest-budgets';
-import { suggestBudgets } from '@/ai/flows/suggest-budgets'; // Make sure path is correct
+import { suggestBudgets } from '@/ai/flows/suggest-budgets';
 import { Lightbulb, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -152,22 +154,24 @@ export default function BudgetSuggestionsPage() {
             <CardDescription>Based on your spending history, here are some suggested monthly amounts for your expense categories.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Suggested Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(suggestions).map(([category, amount]) => (
-                  <TableRow key={category}>
-                    <TableCell className="font-medium">{category}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
+            <ScrollArea className="h-[300px] w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Suggested Amount</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(suggestions).map(([category, amount]) => (
+                    <TableRow key={category}>
+                      <TableCell className="font-medium">{category}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
       )}
@@ -175,9 +179,10 @@ export default function BudgetSuggestionsPage() {
          <Card>
             <CardHeader>
                 <CardTitle>No Suggestions Generated</CardTitle>
+                <CardDescription>The AI could not generate budget suggestions with the current data.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">The AI could not generate budget suggestions with the current data. Try adding more diverse expense transactions or try again later.</p>
+                <p className="text-muted-foreground">Try adding more diverse expense transactions or try again later.</p>
             </CardContent>
          </Card>
        )}

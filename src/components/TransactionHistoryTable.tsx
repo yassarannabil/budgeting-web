@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -76,7 +77,7 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
                 <TableHead>Type</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>Date & Time</TableHead>
                 <TableHead>Note</TableHead>
               </TableRow>
             </TableHeader>
@@ -94,8 +95,11 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(Math.abs(transaction.amount))}
                   </TableCell>
-                  <TableCell>{formatDate(transaction.date)} {transaction.time}</TableCell>
-                  <TableCell className="truncate max-w-[150px]">{transaction.note || '-'}</TableCell>
+                  <TableCell>
+                    <div className="whitespace-nowrap">{formatDate(transaction.date)}</div>
+                    <div className="text-xs text-muted-foreground">{transaction.time}</div>
+                  </TableCell>
+                  <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{transaction.note || '-'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -105,3 +109,4 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
     </Card>
   );
 }
+

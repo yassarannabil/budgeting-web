@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { DashboardSummary } from '@/components/DashboardSummary';
 import { ExpensePieChart } from '@/components/ExpensePieChart';
@@ -21,9 +22,9 @@ export default function DashboardPage() {
     setIsClient(true);
   }, []);
 
-  const handleFilterChange = (filterType: DateRangeFilterType, range: DateRange) => {
+  const handleFilterChange = useCallback((filterType: DateRangeFilterType, range: DateRange) => {
     setCurrentDateRange(range);
-  };
+  }, []); // setCurrentDateRange is stable, so empty dependency array is fine
   
   useMemo(() => {
     if (!currentDateRange || !currentDateRange.from) {
@@ -83,3 +84,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

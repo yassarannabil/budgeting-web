@@ -9,7 +9,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import type { SectorProps } from 'recharts';
 import { TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile'; // Added import
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ExpensePieChartProps {
   transactions: Transaction[];
@@ -56,8 +56,7 @@ const ActiveSector = (props: SectorProps) => {
 export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [clickedCategory, setClickedCategory] = useState<string | null>(null);
-  const isMobile = useIsMobile(); // Added hook
-
+  const isMobile = useIsMobile();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const totalExpenses = transactions
@@ -89,15 +88,40 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
         setClickedCategory(null);
-        if (!isMobile) setHoveredCategory(null); // Reset hover on desktop
+        if (!isMobile) setHoveredCategory(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobile]); // Added isMobile dependency
+  }, [isMobile]);
 
+
+  const handlePieSectorClick = (data: any, index: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const categoryName = expenseData[index]?.name;
+    if (categoryName) {
+      if (clickedCategory === categoryName) {
+        setClickedCategory(null);
+        if (!isMobile) setHoveredCategory(null);
+      } else {
+        setClickedCategory(categoryName);
+        if (!isMobile) setHoveredCategory(categoryName);
+      }
+    }
+  };
+
+  const handleListItemClick = (categoryName: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (clickedCategory === categoryName) {
+      setClickedCategory(null);
+      if (!isMobile) setHoveredCategory(null);
+    } else {
+      setClickedCategory(categoryName);
+      if (!isMobile) setHoveredCategory(categoryName);
+    }
+  };
 
   if (expenseData.length === 0) {
     return (
@@ -124,44 +148,19 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     return acc;
   }, {} as Record<string, { label: string; color: string }>);
 
-  const handlePieSectorClick = (data: any, index: number, event: React.MouseEvent) => {
-    event.stopPropagation();
-    const categoryName = expenseData[index]?.name;
-    if (categoryName) {
-      if (clickedCategory === categoryName) {
-        setClickedCategory(null);
-        if (!isMobile) setHoveredCategory(null); // Reset hover on desktop
-      } else {
-        setClickedCategory(categoryName);
-        if (!isMobile) setHoveredCategory(categoryName); // Sync hover on desktop
-      }
-    }
-  };
-
-  const handleListItemClick = (categoryName: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (clickedCategory === categoryName) {
-      setClickedCategory(null);
-      if (!isMobile) setHoveredCategory(null); // Reset hover on desktop
-    } else {
-      setClickedCategory(categoryName);
-      if (!isMobile) setHoveredCategory(categoryName); // Sync hover on desktop
-    }
-  };
-
   return (
     <Card ref={cardRef} onClick={() => {
       setClickedCategory(null);
-      if (!isMobile) setHoveredCategory(null); // Reset hover on desktop
+      if (!isMobile) setHoveredCategory(null);
     }}>
-      <CardHeader onClick={(e) => e.stopPropagation()}>
+      <CardHeader>
         <CardTitle className="flex items-center">
           <TrendingDown className="h-5 w-5 mr-2 text-primary" />
           Expense Distribution
         </CardTitle>
         <CardDescription>Visual breakdown of your spending by category. Click a slice or item to focus.</CardDescription>
       </CardHeader>
-      <CardContent onClick={(e) => e.stopPropagation_DISABLED()}> {/* Temporarily disable stopPropagation here to test card click */}
+      <CardContent>
         <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -182,12 +181,12 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                 activeShape={ActiveSector as any}
                 onClick={handlePieSectorClick}
                 onMouseEnter={(data, index) => {
-                  if (!isMobile && expenseData[index]?.name) { // Only hover on desktop
+                  if (!isMobile && expenseData[index]?.name) {
                     setHoveredCategory(expenseData[index].name);
                   }
                 }}
                 onMouseLeave={() => {
-                  if (!isMobile) { // Only hover on desktop
+                  if (!isMobile) {
                     setHoveredCategory(null);
                   }
                 }}
@@ -209,15 +208,15 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
-                    stroke={ // Updated stroke logic
+                    stroke={
                       (hoveredCategory === entry.name && clickedCategory !== entry.name && !isMobile)
-                        ? 'hsl(var(--foreground))' // Desktop hover only
-                        : 'hsl(var(--card))'      // Default or clicked (ActiveSector handles clicked appearance)
+                        ? 'hsl(var(--foreground))'
+                        : 'hsl(var(--card))'
                     }
-                    strokeWidth={ // Updated strokeWidth logic
+                    strokeWidth={
                       (hoveredCategory === entry.name && clickedCategory !== entry.name && !isMobile)
-                        ? 1.5  // Desktop hover only
-                        : 1    // Default (ActiveSector handles clicked appearance)
+                        ? 1.5
+                        : 1
                     }
                   />
                 ))}
@@ -249,14 +248,12 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
         <div className="mt-6">
             <h3
               className="text-md font-semibold text-center mb-3"
-              onClick={(e) => e.stopPropagation()}
             >
               Expense Summary by Category
             </h3>
             <div className="space-y-2">
               {expenseData.map((entry, index) => {
                 const isClicked = clickedCategory === entry.name;
-                // isHovered is now specific to desktop if we want to avoid mobile tap-hover issues
                 const isDesktopHovered = hoveredCategory === entry.name && !isClicked && !isMobile;
                 const itemColor = COLORS[index % COLORS.length];
 
@@ -266,17 +263,17 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                     className={cn(
                       "flex justify-between items-center p-3 rounded-lg transition-all duration-300 ease-in-out cursor-pointer",
                       isClicked
-                        ? 'shadow-xl scale-[1.03]' // Clicked state
+                        ? 'shadow-xl scale-[1.03]'
                         : isDesktopHovered
-                          ? 'shadow-md bg-muted' // Desktop hovered state
-                          : 'bg-muted/50 hover:bg-muted hover:shadow-sm' // Default state
+                          ? 'shadow-md bg-muted'
+                          : 'bg-muted/50 hover:bg-muted hover:shadow-sm'
                     )}
                     style={isClicked ? { backgroundColor: itemColor, color: 'hsl(var(--primary-foreground))' } : {}}
                     onMouseEnter={() => {
-                      if (!isMobile) setHoveredCategory(entry.name); // Only hover on desktop
+                      if (!isMobile) setHoveredCategory(entry.name);
                     }}
                     onMouseLeave={() => {
-                      if (!isMobile) setHoveredCategory(null); // Only hover on desktop
+                      if (!isMobile) setHoveredCategory(null);
                     }}
                     onClick={(e) => handleListItemClick(entry.name, e)}
                   >
@@ -289,7 +286,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-medium">{formatCurrency(entry.value)}</span>
-                      <span className={cn( // Simplified percentage text color
+                      <span className={cn(
                         "text-xs ml-2",
                         isClicked ? "opacity-80" : "text-muted-foreground"
                       )}>
@@ -305,74 +302,3 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     </Card>
   );
 }
-
-// Remove the previous onClick={(e) => e.stopPropagation_DISABLED()} and restore it
-// Find:
-// <CardContent onClick={(e) => e.stopPropagation_DISABLED()}>
-// Replace with:
-// <CardContent onClick={(e) => e.stopPropagation()}>
-
-// The CardHeader onClick was also modified to test. Revert it.
-// Find:
-// <CardHeader onClick={(e) => e.stopPropagation()}>
-// Replace with:
-// <CardHeader>
-
-// After manual review, I will ensure the Card onClick, CardHeader, CardContent and h3 onClicks are correct.
-// The goal for Card: onClick={() => { setClickedCategory(null); if (!isMobile) setHoveredCategory(null); }}
-// The goal for CardHeader, CardContent (main part), h3: e.stopPropagation() if they are not meant to deselect.
-// However, clicking on CardContent (empty space) *should* deselect.
-// So, Card should have the deselect. PieChart, ListItems should stopPropagation.
-// CardHeader and h3 should also stopPropagation if clicking them should not deselect.
-// The user stated: "Saya ingin semua bagian dalam kotak yang berwarna putih tersebut ketika di klik bisa menghilangkan efek hover, yang penting bukan di bagian Pie Chart atau List yang berwarna (bukan putih)."
-// This implies CardHeader and H3 *should* deselect.
-// So, the onClick on Card is correct. The stopPropagation should only be on Pie and ListItems.
-
-// Correcting CardContent and CardHeader onClick logic based on re-evaluation:
-// Card: `onClick` to deselect.
-// ChartContainer / PieChart itself: `onClick` to deselect if background, `stopPropagation` if sector.
-// List item: `onClick` to select/deselect, `stopPropagation`.
-// CardHeader and h3: *should* allow click to bubble to Card to deselect.
-// So, remove `stopPropagation` from CardHeader and h3.
-// The ChartContainer needs an onClick to handle clicks on its background.
-
-// Final refined logic for click handling:
-// 1. `Card`: `onClick` deselects `clickedCategory` and `hoveredCategory` (if !isMobile).
-// 2. `Pie` (sectors): `onClick` (handlePieSectorClick) selects/deselects its category, sets hover, and `event.stopPropagation()`.
-// 3. List items (`div`): `onClick` (handleListItemClick) selects/deselects its category, sets hover, and `event.stopPropagation()`.
-// 4. `useEffect` for click outside `cardRef`: Deselects.
-// This means if a click happens on CardHeader, h3, or empty space in CardContent, it bubbles to Card and deselects.
-// If click is on Pie sector or List item, it's handled there and stopped.
-// This should achieve the desired "click on white space to deselect".
-
-// Re-checking the previous code block for the Card, CardHeader, CardContent, h3 onClicks.
-// The previous one had:
-// Card ref={cardRef} onClick={() => { setClickedCategory(null); if (!isMobile) setHoveredCategory(null); }}
-// CardHeader onClick={(e) => e.stopPropagation()} -> THIS WAS WRONG based on user's last good state. Should allow bubble.
-// CardContent onClick={(e) => e.stopPropagation()} -> THIS WAS WRONG. Should allow bubble.
-// h3 onClick={(e) => e.stopPropagation()} -> THIS WAS WRONG. Should allow bubble.
-
-// So, CardHeader, CardContent (for its empty space), and h3 should NOT have stopPropagation.
-// The Card's onClick will handle deselection for these.
-// Only the interactive Pie Sectors and List Items should stopPropagation.
-// My current code block has this correctly for Card's onClick.
-// handlePieSectorClick and handleListItemClick already do stopPropagation.
-// CardHeader, CardContent, and h3 in the current block do NOT have stopPropagation, which is correct for allowing deselection.
-// The only onClick={(e) => e.stopPropagation_DISABLED()} was a temporary testing mark.
-// It needs to be `<CardContent>`.
-
-// The issue with `stopPropagation_DISABLED()` needs to be fixed.
-// It should just be `<CardContent>`. If we want clicks on empty card content to deselect, it should NOT stop propagation.
-// The root `Card`'s `onClick` will handle it.
-
-// Final content of ExpensePieChart.tsx:
-// Removed the e.stopPropagation() from CardHeader and H3.
-// Ensured CardContent does not stop propagation.
-// Ensured Pie sectors and List items DO stop propagation.
-// Ensured Card's main onClick handles deselection.
-// Ensured useEffect for click outside handles deselection.
-// Added isMobile checks for hover effects.
-// Updated Cell stroke and strokeWidth for desktop hover.
-// Updated List item className for desktop hover.
-// Updated List item percentage text color.
-// Updated setHoveredCategory in deselect logic.

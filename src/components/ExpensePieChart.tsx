@@ -41,11 +41,11 @@ const ActiveSector = (props: SectorProps) => {
       cx={cx}
       cy={cy}
       innerRadius={innerRadius}
-      outerRadius={outerRadius + 8}
+      outerRadius={outerRadius + 8} // Make the active sector "pop out"
       startAngle={startAngle}
       endAngle={endAngle}
       fill={fill}
-      stroke={'hsl(var(--background))'}
+      stroke={'hsl(var(--background))'} // Add a border to the active sector
       strokeWidth={2}
     />
   );
@@ -56,8 +56,6 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [clickedCategory, setClickedCategory] = useState<string | null>(null);
   
-  const chartRef = useRef<HTMLDivElement>(null);
-  const listItemsContainerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null); // Ref for the entire card
 
   const totalExpenses = transactions
@@ -125,7 +123,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   }, {} as Record<string, { label: string; color: string }>);
 
   const handlePieSectorClick = (data: any, index: number, event: React.MouseEvent) => {
-    event.stopPropagation(); 
+    event.stopPropagation(); // Prevent click from bubbling to Card's onClick
     const categoryName = expenseData[index]?.name;
     if (categoryName) {
       setClickedCategory(categoryName === clickedCategory ? null : categoryName);
@@ -133,108 +131,103 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   };
   
   const handleListItemClick = (categoryName: string, event: React.MouseEvent) => {
-    event.stopPropagation(); 
+    event.stopPropagation(); // Prevent click from bubbling to Card's onClick
     setClickedCategory(categoryName === clickedCategory ? null : categoryName);
   };
 
   return (
     <Card ref={cardRef} onClick={() => setClickedCategory(null)}>
-      <CardHeader onClick={(e) => e.stopPropagation()}> {/* Stop propagation if header is clicked */}
+      <CardHeader> {/* Clicks here will bubble to Card and trigger setClickedCategory(null) */}
         <CardTitle className="flex items-center">
           <TrendingDown className="h-5 w-5 mr-2 text-primary" />
           Expense Distribution
         </CardTitle>
         <CardDescription>Visual breakdown of your spending by category. Click a slice or item to focus.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div 
-          ref={chartRef} 
-          onClick={(e) => e.stopPropagation()} // Stop propagation for clicks on chart container background
-        >
-          <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <ChartTooltip
-                  cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Pie
-                  data={expenseData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={65} 
-                  labelLine={false}
-                  activeIndex={activeIndex}
-                  activeShape={ActiveSector as any} 
-                  onClick={handlePieSectorClick}
-                  onMouseEnter={(data, index) => {
-                    if (expenseData[index]?.name) setHoveredCategory(expenseData[index].name);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredCategory(null);
-                  }}
-                  label={({ cx, cy, midAngle, innerRadius = 0, outerRadius = 0, percent, index, name }) => {
-                      if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number' || typeof midAngle !== 'number' || typeof cx !== 'number' || typeof cy !== 'number') return null;
+      <CardContent> {/* Clicks on empty space here will bubble to Card */}
+        <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <ChartTooltip
+                cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Pie
+                data={expenseData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                innerRadius={65} 
+                labelLine={false}
+                activeIndex={activeIndex}
+                activeShape={ActiveSector as any} 
+                onClick={handlePieSectorClick} // This stops propagation
+                onMouseEnter={(data, index) => {
+                  if (expenseData[index]?.name) setHoveredCategory(expenseData[index].name);
+                }}
+                onMouseLeave={() => {
+                  setHoveredCategory(null);
+                }}
+                label={({ cx, cy, midAngle, innerRadius = 0, outerRadius = 0, percent, index, name }) => {
+                    if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number' || typeof midAngle !== 'number' || typeof cx !== 'number' || typeof cy !== 'number') return null;
 
-                      const radius = innerRadius + (outerRadius - innerRadius) * 1.35; 
-                      const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
-                      const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-                      if ((percent ?? 0) * 100 < 3) return null; 
-                      return (
-                        <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-[10px] pointer-events-none">
-                          {`${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                        </text>
-                      );
-                    }}
-                >
-                  {expenseData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                      stroke={
-                        clickedCategory === entry.name || hoveredCategory === entry.name 
-                        ? 'hsl(var(--ring))' 
-                        : 'hsl(var(--card))'
-                      }
-                      strokeWidth={clickedCategory === entry.name || hoveredCategory === entry.name ? 2.5 : 1}
-                    />
-                  ))}
-                </Pie>
-                <text
-                  x="50%"
-                  y="48%"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="text-xl font-semibold pointer-events-none"
-                  style={{ fill: 'hsl(var(--foreground))' }} 
-                >
-                  {formatCurrency(totalExpenses)}
-                </text>
-                <text
-                  x="50%"
-                  y="58%" 
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="text-xs pointer-events-none"
-                  style={{ fill: 'hsl(var(--muted-foreground))' }}
-                >
-                  Total Expenses
-                </text>
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
+                    const radius = innerRadius + (outerRadius - innerRadius) * 1.35; 
+                    const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
+                    const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+                    if ((percent ?? 0) * 100 < 3) return null; 
+                    return (
+                      <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-[10px] pointer-events-none">
+                        {`${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
+                      </text>
+                    );
+                  }}
+              >
+                {expenseData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]} 
+                    stroke={
+                      clickedCategory === entry.name || hoveredCategory === entry.name 
+                      ? 'hsl(var(--ring))' 
+                      : 'hsl(var(--card))'
+                    }
+                    strokeWidth={clickedCategory === entry.name || hoveredCategory === entry.name ? 2.5 : 1}
+                  />
+                ))}
+              </Pie>
+              <text
+                x="50%"
+                y="48%"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xl font-semibold pointer-events-none"
+                style={{ fill: 'hsl(var(--foreground))' }} 
+              >
+                {formatCurrency(totalExpenses)}
+              </text>
+              <text
+                x="50%"
+                y="58%" 
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xs pointer-events-none"
+                style={{ fill: 'hsl(var(--muted-foreground))' }}
+              >
+                Total Expenses
+              </text>
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartContainer>
 
-        <div className="mt-6" onClick={(e) => e.stopPropagation()}> {/* Stop propagation for clicks on the list wrapper */}
+        <div className="mt-6">
             <h3 
               className="text-md font-semibold text-center mb-3"
-            >
+            > {/* Clicks here will bubble to Card */}
               Expense Summary by Category
             </h3>
-            <div ref={listItemsContainerRef} className="space-y-2">
+            <div className="space-y-2"> {/* Clicks on empty space here will bubble to Card */}
               {expenseData.map((entry, index) => {
                 const isClicked = clickedCategory === entry.name;
                 const isHovered = hoveredCategory === entry.name && !isClicked;
@@ -252,7 +245,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                     style={isClicked ? { backgroundColor: itemColor, color: 'hsl(var(--primary-foreground))' } : {}}
                     onMouseEnter={() => setHoveredCategory(entry.name)}
                     onMouseLeave={() => setHoveredCategory(null)}
-                    onClick={(e) => handleListItemClick(entry.name, e)}
+                    onClick={(e) => handleListItemClick(entry.name, e)} // This stops propagation
                   >
                     <div className="flex items-center">
                       <span 
@@ -281,3 +274,5 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     </Card>
   );
 }
+
+    

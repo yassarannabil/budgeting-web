@@ -12,27 +12,24 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { Transaction } from '@/types';
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ListCollapse } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-
+import { cn } from '@/lib/utils';
 
 const formatCurrency = (amount: number) => {
   return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 };
 
-const formatDate = (dateString: string) => {
+const formatDateForDisplay = (dateString: string) => {
   try {
-    // Assuming dateString is 'yyyy-MM-dd'
-    const date = parseISO(dateString + 'T00:00:00'); // Add time part to avoid timezone issues with parseISO
-    return format(date, 'MMM dd, yyyy');
+    const date = parseISO(dateString + 'T00:00:00');
+    return format(date, 'EEEE, MMM dd, yyyy'); // Format seperti "Senin, Nov 08, 2024"
   } catch (error) {
-    console.error("Error parsing date:", dateString, error);
-    return dateString; // Fallback to original string if parsing fails
+    console.error("Error parsing date for display:", dateString, error);
+    return dateString;
   }
 };
-
 
 interface TransactionHistoryTableProps {
   transactions: Transaction[];
@@ -41,6 +38,15 @@ interface TransactionHistoryTableProps {
 
 export function TransactionHistoryTable({ transactions, limit = 10 }: TransactionHistoryTableProps) {
   const displayedTransactions = transactions.slice(0, limit);
+
+  const groupedTransactions = displayedTransactions.reduce((acc, transaction) => {
+    const dateKey = formatDateForDisplay(transaction.date);
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(transaction);
+    return acc;
+  }, {} as Record<string, Transaction[]>);
 
   if (transactions.length === 0) {
      return (
@@ -59,7 +65,6 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
     );
   }
 
-
   return (
     <Card>
       <CardHeader>
@@ -74,33 +79,39 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Type</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Date & Time</TableHead>
+                <TableHead>Time</TableHead>
                 <TableHead>Note</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayedTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>
-                    <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'} 
-                           className={transaction.type === 'income' ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30' : 'bg-red-500/20 text-red-700 border-red-500/30 hover:bg-red-500/30'}>
-                      {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{transaction.category}</TableCell>
-                  <TableCell className={`text-right font-medium ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                    {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(Math.abs(transaction.amount))}
-                  </TableCell>
-                  <TableCell>
-                    <div className="whitespace-nowrap">{formatDate(transaction.date)}</div>
-                    <div className="text-xs text-muted-foreground">{transaction.time}</div>
-                  </TableCell>
-                  <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{transaction.note || '-'}</TableCell>
-                </TableRow>
+              {Object.entries(groupedTransactions).map(([date, txsOnDate]) => (
+                <React.Fragment key={date}>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50">
+                    <TableCell colSpan={4} className="py-2 px-4 text-sm font-semibold text-muted-foreground sticky top-0 z-10 bg-muted/50">
+                      {date}
+                    </TableCell>
+                  </TableRow>
+                  {txsOnDate.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{transaction.category}</TableCell>
+                      <TableCell 
+                        className={cn(
+                          "text-right font-medium",
+                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        )}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(Math.abs(transaction.amount))}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs text-muted-foreground">{transaction.time}</div>
+                      </TableCell>
+                      <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{transaction.note || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </React.Fragment>
               ))}
             </TableBody>
           </Table>
@@ -109,4 +120,3 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
     </Card>
   );
 }
-

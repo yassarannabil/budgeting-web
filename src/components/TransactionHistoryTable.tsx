@@ -6,8 +6,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,8 +21,9 @@ const formatCurrency = (amount: number) => {
 
 const formatDateForDisplay = (dateString: string) => {
   try {
-    const date = parseISO(dateString + 'T00:00:00');
-    return format(date, 'EEEE, MMM dd, yyyy'); // Format seperti "Senin, Nov 08, 2024"
+    // Assuming dateString is 'YYYY-MM-DD'
+    const date = parseISO(dateString); // parseISO can handle 'YYYY-MM-DD' directly
+    return format(date, 'EEEE, MMM dd, yyyy');
   } catch (error) {
     console.error("Error parsing date for display:", dateString, error);
     return dateString;
@@ -77,38 +76,32 @@ export function TransactionHistoryTable({ transactions, limit = 10 }: Transactio
       <CardContent>
         <ScrollArea className="h-[400px] w-full">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Note</TableHead>
-              </TableRow>
-            </TableHeader>
             <TableBody>
               {Object.entries(groupedTransactions).map(([date, txsOnDate]) => (
                 <React.Fragment key={date}>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableCell colSpan={4} className="py-2 px-4 text-sm font-semibold text-muted-foreground sticky top-0 z-10 bg-muted/50">
+                    <TableCell colSpan={2} className="py-2 px-4 text-sm font-semibold text-muted-foreground sticky top-0 z-10 bg-muted/50">
                       {date}
                     </TableCell>
                   </TableRow>
                   {txsOnDate.map((transaction) => (
                     <TableRow key={transaction.id}>
-                      <TableCell>{transaction.category}</TableCell>
-                      <TableCell 
-                        className={cn(
-                          "text-right font-medium",
-                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                        )}
-                      >
-                        {transaction.type === 'income' ? '+' : '-'}
-                        {formatCurrency(Math.abs(transaction.amount))}
+                      <TableCell className="py-3">
+                        <div className="font-medium">{transaction.category}</div>
+                        <div className="text-xs text-muted-foreground">{transaction.note || '-'}</div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right py-3">
+                        <div 
+                          className={cn(
+                            "font-semibold", // Changed from font-medium for more emphasis on amount
+                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                          )}
+                        >
+                          {transaction.type === 'income' ? '+' : '-'}
+                          {formatCurrency(Math.abs(transaction.amount))}
+                        </div>
                         <div className="text-xs text-muted-foreground">{transaction.time}</div>
                       </TableCell>
-                      <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{transaction.note || '-'}</TableCell>
                     </TableRow>
                   ))}
                 </React.Fragment>

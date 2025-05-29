@@ -1,12 +1,13 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import type { Transaction } from '@/types';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ExpensePieChartProps {
   transactions: Transaction[];
@@ -20,13 +21,22 @@ const COLORS = [
   'hsl(var(--chart-5))',
   'hsl(var(--primary) / 0.7)',
   'hsl(var(--accent) / 0.7)',
+  'hsl(var(--secondary) / 0.7)', // Added more colors for variety
+  'hsl(var(--muted-foreground) / 0.5)',
+  'hsl(var(--foreground) / 0.6)',
 ];
 
 const formatCurrency = (amount: number) => {
-  return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
 };
 
 export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
   const expenseData = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
@@ -38,9 +48,11 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
       }
       return acc;
     }, [] as { name: string; value: number }[])
-    .sort((a,b) => b.value - a.value); // Sort for consistent color assignment
-
-  const totalExpenses = expenseData.reduce((sum, item) => sum + item.value, 0);
+    .map(item => ({
+      ...item,
+      percentage: totalExpenses > 0 ? (item.value / totalExpenses) * 100 : 0,
+    }))
+    .sort((a,b) => b.value - a.value); // Sort for consistent color assignment and list order
 
   if (expenseData.length === 0) {
     return (
@@ -78,7 +90,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
         <CardDescription>Visual breakdown of your spending by category.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <ChartTooltip
@@ -92,27 +104,38 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                innerRadius={65} // Adjusted innerRadius for more space for center text
+                innerRadius={65} 
                 labelLine={false}
                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }) => {
-                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const radius = innerRadius + (outerRadius - innerRadius) * 1.3; // Move label slightly outside
                     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
                     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-                    if (percent * 100 < 5) return null; // Hide small percentage labels
+                    if (percent * 100 < 3) return null; 
                     return (
-                      <text x={x} y={y} fill="hsl(var(--card-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs">
+                      <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs">
                         {`${name} (${(percent * 100).toFixed(0)}%)`}
                       </text>
                     );
                   }}
+                onMouseEnter={(data) => {
+                  setHoveredCategory(data.name);
+                }}
+                onMouseLeave={() => {
+                  setHoveredCategory(null);
+                }}
               >
                 {expenseData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]} 
+                    stroke={hoveredCategory === entry.name ? 'hsl(var(--ring))' : 'hsl(var(--card))'} // Highlight border on hover
+                    strokeWidth={hoveredCategory === entry.name ? 2 : 1}
+                  />
                 ))}
               </Pie>
               <text
                 x="50%"
-                y="48%" // Adjusted y for better vertical centering with two lines
+                y="48%"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="text-xl font-semibold"
@@ -122,7 +145,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
               </text>
               <text
                 x="50%"
-                y="58%" // Adjusted y for the label below the amount
+                y="58%" 
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="text-xs"
@@ -133,6 +156,38 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
             </PieChart>
           </ResponsiveContainer>
         </ChartContainer>
+
+        <div className="mt-6 space-y-2">
+          <h3 className="text-md font-semibold text-center mb-3">Expense Summary by Category</h3>
+          {expenseData.map((entry, index) => (
+            <div
+              key={entry.name}
+              className={cn(
+                "flex justify-between items-center p-3 rounded-lg transition-all duration-200 ease-in-out",
+                hoveredCategory === entry.name ? "bg-accent text-accent-foreground shadow-lg scale-[1.02]" : "bg-muted/50 hover:bg-muted"
+              )}
+              onMouseEnter={() => setHoveredCategory(entry.name)}
+              onMouseLeave={() => setHoveredCategory(null)}
+            >
+              <div className="flex items-center">
+                <span 
+                  className="w-3 h-3 rounded-full mr-3" 
+                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                ></span>
+                <span className="font-medium">{entry.name}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-medium">{formatCurrency(entry.value)}</span>
+                <span className={cn(
+                  "text-xs ml-2",
+                  hoveredCategory === entry.name ? "text-accent-foreground/80" : "text-muted-foreground"
+                )}>
+                  ({entry.percentage.toFixed(1)}%)
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

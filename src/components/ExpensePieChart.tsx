@@ -89,29 +89,17 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
       const clickedOutsideChart = chartRef.current && !chartRef.current.contains(target);
-      
-      // Only check listItemsContainerRef if expenseData exists (and thus the list is rendered)
-      const clickedOutsideListItems = expenseData.length > 0 
-        ? (listItemsContainerRef.current && !listItemsContainerRef.current.contains(target))
-        : true; // If no list, consider it "outside list"
+      const clickedOutsideListItems = listItemsContainerRef.current && !listItemsContainerRef.current.contains(target);
 
-      if (expenseData.length === 0) {
-        // If no list, only clicking outside the chart should reset
-        if (clickedOutsideChart) {
+      if (clickedOutsideChart && clickedOutsideListItems) {
           setClickedCategory(null);
-        }
-      } else {
-        // If list exists, click must be outside both chart AND list items container
-        if (clickedOutsideChart && clickedOutsideListItems) {
-          setClickedCategory(null);
-        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [expenseData.length]); // Effect depends on whether the list is rendered
+  }, []);
 
 
   if (expenseData.length === 0) {
@@ -139,7 +127,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     return acc;
   }, {} as Record<string, { label: string; color: string }>);
 
-  const handlePieClick = (data: any, index: number) => {
+  const handlePieSectorClick = (data: any, index: number) => {
     const categoryName = expenseData[index]?.name;
     if (categoryName) {
       setClickedCategory(categoryName === clickedCategory ? null : categoryName);
@@ -149,6 +137,23 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const handleListItemClick = (categoryName: string) => {
     setClickedCategory(categoryName === clickedCategory ? null : categoryName);
   };
+
+  const handlePieChartAreaClick = (activeSectorPayload: any, event: MouseEvent) => {
+    // If activeSectorPayload is null/undefined, it implies a click on the chart's background
+    // or a non-interactive part (like the center text), not on an actual data sector.
+    if (!activeSectorPayload) {
+      // Check if the click originated from a list item to avoid interference.
+      if (listItemsContainerRef.current && listItemsContainerRef.current.contains(event.target as Node)) {
+        // Click was on a list item, let its own handler manage the state.
+        return;
+      }
+      setClickedCategory(null); // Reset if background of chart was clicked
+    }
+    // If activeSectorPayload is present, it means a data sector was targeted.
+    // The <Pie component's onClick (handlePieSectorClick) is more specific for sector data
+    // and should have already handled setting/toggling clickedCategory.
+  };
+
 
   return (
     <Card>
@@ -163,7 +168,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
         <div ref={chartRef}>
           <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart onClick={handlePieChartAreaClick}>
                 <ChartTooltip
                   cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
                   content={<ChartTooltipContent hideLabel />}
@@ -179,7 +184,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                   labelLine={false}
                   activeIndex={activeIndex}
                   activeShape={ActiveSector as any} 
-                  onClick={handlePieClick}
+                  onClick={handlePieSectorClick}
                   onMouseEnter={(data, index) => {
                     if (expenseData[index]?.name) setHoveredCategory(expenseData[index].name);
                   }}
@@ -238,8 +243,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
           </ChartContainer>
         </div>
 
-        {expenseData.length > 0 && (
-           <div className="mt-6"> {/* Wrapper for title and list items */}
+         <div className="mt-6">
             <h3 className="text-md font-semibold text-center mb-3">Expense Summary by Category</h3>
             <div ref={listItemsContainerRef} className="space-y-2">
               {expenseData.map((entry, index) => {
@@ -284,7 +288,6 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
               })}
             </div>
           </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -56,7 +56,9 @@ const ActiveSector = (props: SectorProps) => {
 export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [clickedCategory, setClickedCategory] = useState<string | null>(null);
-  const interactiveAreaRef = useRef<HTMLDivElement>(null); // Renamed for clarity
+  
+  const chartRef = useRef<HTMLDivElement>(null);
+  const listItemsContainerRef = useRef<HTMLDivElement>(null);
 
   const totalExpenses = transactions
     .filter(t => t.type === 'expense')
@@ -85,15 +87,31 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (interactiveAreaRef.current && !interactiveAreaRef.current.contains(event.target as Node)) {
-        setClickedCategory(null); // Reset selection when clicking outside the interactive area
+      const target = event.target as Node;
+      const clickedOutsideChart = chartRef.current && !chartRef.current.contains(target);
+      
+      // Only check listItemsContainerRef if expenseData exists (and thus the list is rendered)
+      const clickedOutsideListItems = expenseData.length > 0 
+        ? (listItemsContainerRef.current && !listItemsContainerRef.current.contains(target))
+        : true; // If no list, consider it "outside list"
+
+      if (expenseData.length === 0) {
+        // If no list, only clicking outside the chart should reset
+        if (clickedOutsideChart) {
+          setClickedCategory(null);
+        }
+      } else {
+        // If list exists, click must be outside both chart AND list items container
+        if (clickedOutsideChart && clickedOutsideListItems) {
+          setClickedCategory(null);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [interactiveAreaRef]);
+  }, [expenseData.length]); // Effect depends on whether the list is rendered
 
 
   if (expenseData.length === 0) {
@@ -142,7 +160,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
         <CardDescription>Visual breakdown of your spending by category. Click a slice or item to focus.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div ref={interactiveAreaRef}> {/* This div now wraps only the chart and the list */}
+        <div ref={chartRef}>
           <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -218,52 +236,57 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
-
-          <div className="mt-6 space-y-2">
-            <h3 className="text-md font-semibold text-center mb-3">Expense Summary by Category</h3>
-            {expenseData.map((entry, index) => {
-              const isClicked = clickedCategory === entry.name;
-              const isHovered = hoveredCategory === entry.name && !isClicked;
-              const itemColor = COLORS[index % COLORS.length];
-
-              return (
-                <div
-                  key={entry.name}
-                  className={cn(
-                    "flex justify-between items-center p-3 rounded-lg transition-all duration-300 ease-in-out cursor-pointer",
-                    isClicked ? 'shadow-xl scale-[1.03]' :
-                    isHovered ? 'shadow-lg scale-[1.01] bg-accent text-accent-foreground' :
-                    'bg-muted/50 hover:bg-muted'
-                  )}
-                  style={isClicked ? { backgroundColor: itemColor, color: 'hsl(var(--primary-foreground))' } : {}}
-                  onMouseEnter={() => setHoveredCategory(entry.name)}
-                  onMouseLeave={() => setHoveredCategory(null)}
-                  onClick={() => handleListItemClick(entry.name)}
-                >
-                  <div className="flex items-center">
-                    <span 
-                      className="w-3 h-3 rounded-full mr-3" 
-                      style={{ backgroundColor: isClicked ? 'hsl(var(--primary-foreground))' : itemColor }}
-                    ></span>
-                    <span className="font-medium text-sm">{entry.name}</span> {/* Font size adjusted for list */}
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium">{formatCurrency(entry.value)}</span>
-                    <span className={cn(
-                      "text-xs ml-2",
-                      isClicked ? "opacity-80" : 
-                      isHovered ? "text-accent-foreground/80" :
-                      "text-muted-foreground"
-                    )}>
-                      ({entry.percentage.toFixed(1)}%)
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
+
+        {expenseData.length > 0 && (
+           <div className="mt-6"> {/* Wrapper for title and list items */}
+            <h3 className="text-md font-semibold text-center mb-3">Expense Summary by Category</h3>
+            <div ref={listItemsContainerRef} className="space-y-2">
+              {expenseData.map((entry, index) => {
+                const isClicked = clickedCategory === entry.name;
+                const isHovered = hoveredCategory === entry.name && !isClicked;
+                const itemColor = COLORS[index % COLORS.length];
+
+                return (
+                  <div
+                    key={entry.name}
+                    className={cn(
+                      "flex justify-between items-center p-3 rounded-lg transition-all duration-300 ease-in-out cursor-pointer",
+                      isClicked ? 'shadow-xl scale-[1.03]' :
+                      isHovered ? 'shadow-lg scale-[1.01] bg-accent text-accent-foreground' :
+                      'bg-muted/50 hover:bg-muted'
+                    )}
+                    style={isClicked ? { backgroundColor: itemColor, color: 'hsl(var(--primary-foreground))' } : {}}
+                    onMouseEnter={() => setHoveredCategory(entry.name)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    onClick={() => handleListItemClick(entry.name)}
+                  >
+                    <div className="flex items-center">
+                      <span 
+                        className="w-3 h-3 rounded-full mr-3" 
+                        style={{ backgroundColor: isClicked ? 'hsl(var(--primary-foreground))' : itemColor }}
+                      ></span>
+                      <span className="font-medium text-sm">{entry.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-medium">{formatCurrency(entry.value)}</span>
+                      <span className={cn(
+                        "text-xs ml-2",
+                        isClicked ? "opacity-80" : 
+                        isHovered ? "text-accent-foreground/80" :
+                        "text-muted-foreground"
+                      )}>
+                        ({entry.percentage.toFixed(1)}%)
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
+

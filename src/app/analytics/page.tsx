@@ -1,21 +1,16 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTransactions } from '@/contexts/TransactionContext';
-import { DashboardSummary } from '@/components/DashboardSummary';
-// import { ExpensePieChart } from '@/components/ExpensePieChart'; // Moved to /analytics
-import { TransactionHistoryTable } from '@/components/TransactionHistoryTable';
+import { ExpensePieChart } from '@/components/ExpensePieChart';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
 import type { Transaction, DateRange, DateRangeFilter as DateRangeFilterType } from '@/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from '@/components/ui/card';
 import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { PieChart } from 'lucide-react';
 
-export default function DashboardPage() {
+export default function AnalyticsPage() {
   const { transactions, isLoading: transactionsLoading } = useTransactions();
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [currentDateRange, setCurrentDateRange] = useState<DateRange | null>(null);
@@ -25,7 +20,7 @@ export default function DashboardPage() {
     setIsClient(true);
   }, []);
 
-  const handleFilterChange = useCallback((filterType: DateRangeFilterType, range: DateRange) => {
+  const handleFilterChange = React.useCallback((filterType: DateRangeFilterType, range: DateRange) => {
     setCurrentDateRange(range);
   }, []);
   
@@ -40,7 +35,7 @@ export default function DashboardPage() {
 
     const newFiltered = transactions.filter(transaction => {
       try {
-        const transactionDate = parseISO(transaction.date); 
+        const transactionDate = parseISO(transaction.date);
         return isWithinInterval(transactionDate, { start: startDate, end: endDate });
       } catch (e) {
         console.error("Error parsing transaction date:", transaction.date, e);
@@ -55,41 +50,23 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-10 w-full sm:w-64" />
+          <Skeleton className="h-10 w-48" />
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card><CardContent className="p-6"><Skeleton className="h-24 w-full" /></CardContent></Card>
-          <Card><CardContent className="p-6"><Skeleton className="h-24 w-full" /></CardContent></Card>
-          <Card><CardContent className="p-6"><Skeleton className="h-24 w-full" /></CardContent></Card>
-        </div>
-        <Card><CardContent className="p-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
+        <Card><CardContent className="p-6"><Skeleton className="h-80 w-full" /></CardContent></Card>
       </div>
     );
   }
 
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">Analisa Pengeluaran</h1>
         <DateRangeFilter onFilterChange={handleFilterChange} />
       </div>
       
-      <DashboardSummary transactions={filteredTransactions} />
-      
-      <Card>
-        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p className="text-sm text-muted-foreground">Lihat analisa pengeluaran dalam bentuk grafik.</p>
-            <Link href="/analytics" passHref legacyBehavior>
-                <Button variant="outline">
-                    <PieChart className="h-4 w-4 mr-2" />
-                    Lihat Analisa Grafik
-                </Button>
-            </Link>
-        </CardContent>
-      </Card>
+      <ExpensePieChart transactions={filteredTransactions} />
 
-      <TransactionHistoryTable transactions={filteredTransactions} />
+      {/* You can add more analytical components here in the future */}
     </div>
   );
 }

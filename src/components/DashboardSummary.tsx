@@ -1,9 +1,10 @@
+
 "use client";
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Transaction } from '@/types';
-import { TrendingUp, TrendingDown, Wallet, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 interface DashboardSummaryProps {
   transactions: Transaction[];
@@ -25,39 +26,50 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
   const balance = totalIncome - totalExpenses;
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-          <TrendingUp className="h-5 w-5 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
-          <p className="text-xs text-muted-foreground">From all income transactions</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-          <TrendingDown className="h-5 w-5 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
-          <p className="text-xs text-muted-foreground">From all expense transactions</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
-          <Wallet className="h-5 w-5 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
-            {formatCurrency(balance)}
-          </div>
-          <p className="text-xs text-muted-foreground">Income minus expenses</p>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      {/* Total Income Card */}
+      <div className="order-2 col-span-1 md:order-1 md:col-span-1">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+            <TrendingUp className="h-5 w-5 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
+            <p className="text-xs text-muted-foreground">From all income transactions</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Total Expenses Card */}
+      <div className="order-3 col-span-1 md:order-2 md:col-span-1">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <TrendingDown className="h-5 w-5 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
+            <p className="text-xs text-muted-foreground">From all expense transactions</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Current Balance Card */}
+      <div className="order-1 col-span-2 md:order-3 md:col-span-1">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
+            <Wallet className="h-5 w-5 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
+              {formatCurrency(balance)}
+            </div>
+            <p className="text-xs text-muted-foreground">Income minus expenses</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -105,7 +106,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                 ))}
               </Pie>
               <Legend 
-                wrapperStyle={{fontSize: "0.8rem"}}
+                wrapperStyle={{fontSize: "0.875rem", lineHeight: "1.25rem"}} // Increased font size for better mobile readability
                 formatter={(value, entry) => <span style={{ color: 'hsl(var(--foreground))' }}>{value}</span>}
               />
             </PieChart>

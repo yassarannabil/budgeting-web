@@ -30,12 +30,12 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
       {/* Total Income Card */}
       <div className="order-2 col-span-1 md:order-1 md:col-span-1">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-2 md:px-6 md:pt-6">
             <CardTitle className="text-sm font-medium">Total Income</CardTitle>
             <TrendingUp className="h-5 w-5 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
+          <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
             <p className="text-xs text-muted-foreground">From all income transactions</p>
           </CardContent>
         </Card>
@@ -44,12 +44,12 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
       {/* Total Expenses Card */}
       <div className="order-3 col-span-1 md:order-2 md:col-span-1">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-2 md:px-6 md:pt-6">
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
             <TrendingDown className="h-5 w-5 text-red-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
+          <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
+            <div className="text-xl md:text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
             <p className="text-xs text-muted-foreground">From all expense transactions</p>
           </CardContent>
         </Card>
@@ -58,11 +58,11 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
       {/* Current Balance Card */}
       <div className="order-1 col-span-2 md:order-3 md:col-span-1">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-2 md:px-6 md:pt-6">
             <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
             <Wallet className="h-5 w-5 text-primary" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
             <div className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(balance)}
             </div>

@@ -3,9 +3,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartStyle } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import type { Transaction } from '@/types';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown } from 'lucide-react';
 
 interface ExpensePieChartProps {
@@ -22,6 +22,9 @@ const COLORS = [
   'hsl(var(--accent) / 0.7)',
 ];
 
+const formatCurrency = (amount: number) => {
+  return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+};
 
 export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   const expenseData = transactions
@@ -36,6 +39,8 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
       return acc;
     }, [] as { name: string; value: number }[])
     .sort((a,b) => b.value - a.value); // Sort for consistent color assignment
+
+  const totalExpenses = expenseData.reduce((sum, item) => sum + item.value, 0);
 
   if (expenseData.length === 0) {
     return (
@@ -87,7 +92,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                innerRadius={60}
+                innerRadius={65} // Adjusted innerRadius for more space for center text
                 labelLine={false}
                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }) => {
                     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -105,10 +110,26 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Legend 
-                wrapperStyle={{fontSize: "0.875rem", lineHeight: "1.25rem"}} // Increased font size for better mobile readability
-                formatter={(value, entry) => <span style={{ color: 'hsl(var(--foreground))' }}>{value}</span>}
-              />
+              <text
+                x="50%"
+                y="48%" // Adjusted y for better vertical centering with two lines
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xl font-semibold"
+                style={{ fill: 'hsl(var(--foreground))' }} 
+              >
+                {formatCurrency(totalExpenses)}
+              </text>
+              <text
+                x="50%"
+                y="58%" // Adjusted y for the label below the amount
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xs"
+                style={{ fill: 'hsl(var(--muted-foreground))' }}
+              >
+                Total Expenses
+              </text>
             </PieChart>
           </ResponsiveContainer>
         </ChartContainer>

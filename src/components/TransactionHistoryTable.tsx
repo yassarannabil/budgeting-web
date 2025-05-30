@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useLayoutActions } from '@/contexts/LayoutActionsContext';
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button"; // Added Button import
 
 const formatCurrency = (amount: number) => {
   return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -86,7 +86,16 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
               <ListCollapse className="h-5 w-5 mr-2 text-primary" />
               <CardTitle>Transaksi Terkini</CardTitle>
             </div>
-            {/* "Ubah" text placeholder if needed when no transactions, though typically not shown */}
+             <span
+                onClick={() => setIsEditMode(prev => !prev)}
+                className="text-sm text-primary hover:underline cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsEditMode(prev => !prev); }}
+                aria-pressed={isEditMode}
+              >
+                {isEditMode ? 'Selesai' : 'Ubah'}
+            </span>
           </div>
           <CardDescription className="mt-1">Belum ada transaksi yang dicatat.</CardDescription>
         </CardHeader>

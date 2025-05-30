@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react'; // Added useState
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,9 +11,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { Transaction } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ListCollapse, MoreVertical, Edit3, Trash2 } from 'lucide-react'; // Added MoreVertical, Edit3, Trash2
+import { ListCollapse, MoreVertical, Edit3, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale'; // Added Indonesian locale for date formatting
+import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useLayoutActions } from '@/contexts/LayoutActionsContext';
-import { Button, buttonVariants } from "@/components/ui/button"; // Added Button import
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const formatCurrency = (amount: number) => {
   return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -57,7 +57,7 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
   const { deleteTransaction } = useTransactions();
   const { openEditTransactionDialog } = useLayoutActions();
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false); // State for edit mode
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const handleDeleteConfirm = () => {
     if (transactionToDelete) {
@@ -66,7 +66,7 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
     }
   };
 
-  const displayedTransactions = transactions; // Assuming all transactions are displayed if not limited
+  const displayedTransactions = transactions;
 
   const groupedTransactions = displayedTransactions.reduce((acc, transaction) => {
     const dateKey = formatDateForDisplay(transaction.date);
@@ -127,7 +127,7 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
         </div>
         <CardDescription className="mt-1">Catatan aktivitas keuangan terakhir Anda.</CardDescription>
       </CardHeader>
-      <CardContent className="p-0 sm:p-0 md:p-0">
+      <CardContent className="p-6 pt-0"> {/* Restored default padding */}
         <ScrollArea className="h-[400px] w-full">
           <Table>
             <TableBody>
@@ -209,3 +209,4 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
     </Card>
   );
 }
+

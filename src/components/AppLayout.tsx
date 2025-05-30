@@ -30,13 +30,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from '@/hooks/use-mobile';
-import BottomNavigationBar from './BottomNavigationBar'; // New import
+import BottomNavigationBar from './BottomNavigationBar';
+import { LayoutActionsContext } from '@/contexts/LayoutActionsContext';
+import type { Transaction } from '@/types';
 
-// Define navigation items for both desktop and mobile (for title lookup)
 const commonNavItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard, mobileLabel: 'Catatan', mobileIcon: ScrollText },
+  { href: '/', label: 'Dasbor', icon: LayoutDashboard, mobileLabel: 'Catatan', mobileIcon: ScrollText },
   { href: '/analytics', label: 'Analisa Grafik', icon: BarChart3, mobileLabel: 'Analisa', mobileIcon: PieChartIcon },
-  { href: '/budget-suggestions', label: 'Saran Budget', icon: Lightbulb, mobileLabel: 'Budget', mobileIcon: Lightbulb },
+  { href: '/budget-suggestions', label: 'Saran Anggaran', icon: Lightbulb, mobileLabel: 'Budget', mobileIcon: Lightbulb },
   { href: '/account', label: 'Akun', icon: User, mobileLabel: 'Akun', mobileIcon: User },
 ];
 
@@ -44,18 +45,16 @@ const commonNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+  const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add');
   const isMobile = useIsMobile();
-  const [pageTitle, setPageTitle] = useState('Dashboard');
+  const [pageTitle, setPageTitle] = useState('Dasbor');
 
   useEffect(() => {
     const currentNavItem = commonNavItems.find(item => item.href === pathname);
     if (currentNavItem) {
       setPageTitle(isMobile ? currentNavItem.mobileLabel : currentNavItem.label);
-    } else if (pathname === '/budget-suggestions') {
-      // Special case for budget suggestions if not in commonNavItems for title
-      setPageTitle(isMobile ? 'Budget' : 'Saran Budget');
     } else {
-      // Fallback title
       const segments = pathname.split('/').filter(Boolean);
       const lastSegment = segments.pop();
       setPageTitle(lastSegment ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace('-', ' ') : 'SpendWise');
@@ -68,12 +67,31 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     icon: item.icon,
   }));
 
-  if (isMobile === undefined) { // Still loading mobile status
+  const openAddTransactionDialog = () => {
+    setTransactionToEdit(null);
+    setDialogMode('add');
+    setIsTransactionDialogOpen(true);
+  };
+
+  const openEditTransactionDialog = (transaction: Transaction) => {
+    setTransactionToEdit(transaction);
+    setDialogMode('edit');
+    setIsTransactionDialogOpen(true);
+  };
+
+  const handleTransactionDialogChange = (open: boolean) => {
+    setIsTransactionDialogOpen(open);
+    if (!open) {
+      setTransactionToEdit(null); // Reset transactionToEdit when dialog is closed
+    }
+  };
+
+  if (isMobile === undefined) {
     return <div className="flex justify-center items-center h-screen"><PlusCircle className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   return (
-    <>
+    <LayoutActionsContext.Provider value={{ openEditTransactionDialog }}>
       {isMobile ? (
         <div className="flex flex-col min-h-screen bg-background">
           <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 py-2">
@@ -88,25 +106,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className="overflow-hidden rounded-full"
                 >
                   <Avatar>
-                    <AvatarImage src="https://placehold.co/32x32.png" alt="User Avatar" data-ai-hint="user avatar" />
+                    <AvatarImage src="https://placehold.co/32x32.png" alt="Avatar Pengguna" data-ai-hint="user avatar" />
                     <AvatarFallback>SW</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                  <Link href="/account" passHref legacyBehavior><DropdownMenuItem>Pengaturan</DropdownMenuItem></Link>
-                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuItem>Bantuan</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem>Keluar</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1 p-4 pb-20 overflow-auto"> {/* pb-20 for bottom nav space */}
+          <main className="flex-1 p-4 pb-20 overflow-auto"> 
             {children}
           </main>
-          <BottomNavigationBar onAddTransactionClick={() => setIsTransactionDialogOpen(true)} />
+          <BottomNavigationBar onAddTransactionClick={openAddTransactionDialog} />
         </div>
       ) : (
         <SidebarProvider defaultOpen>
@@ -143,17 +161,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Button 
                   variant="default" 
                   className="w-full justify-start group-data-[collapsible=icon]:justify-center"
-                  onClick={() => setIsTransactionDialogOpen(true)}
+                  onClick={openAddTransactionDialog}
                 >
                   <PlusCircle className="h-5 w-5 mr-2 group-data-[collapsible=icon]:mr-0" />
-                  <span className="group-data-[collapsible=icon]:hidden">Add Transaction</span>
+                  <span className="group-data-[collapsible=icon]:hidden">Tambah Transaksi</span>
                 </Button>
             </SidebarFooter>
           </Sidebar>
 
           <SidebarInset>
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-                <SidebarTrigger className="sm:hidden" /> {/* Mobile toggle, only for <sm screens, won't show on md+ */}
+                <SidebarTrigger className="sm:hidden" /> 
                 <div className="flex-1">
                   <h1 className="text-xl font-semibold">{pageTitle}</h1>
                 </div>
@@ -165,18 +183,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       className="overflow-hidden rounded-full"
                     >
                       <Avatar>
-                        <AvatarImage src="https://placehold.co/32x32.png" alt="User Avatar" data-ai-hint="user avatar" />
+                        <AvatarImage src="https://placehold.co/32x32.png" alt="Avatar Pengguna" data-ai-hint="user avatar" />
                         <AvatarFallback>SW</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <Link href="/account" passHref legacyBehavior><DropdownMenuItem>Settings</DropdownMenuItem></Link>
-                    <DropdownMenuItem>Support</DropdownMenuItem>
+                    <Link href="/account" passHref legacyBehavior><DropdownMenuItem>Pengaturan</DropdownMenuItem></Link>
+                    <DropdownMenuItem>Bantuan</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Logout</DropdownMenuItem>
+                    <DropdownMenuItem>Keluar</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
             </header>
@@ -186,9 +204,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarInset>
         </SidebarProvider>
       )}
-      <TransactionDialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen} />
-    </>
+      <TransactionDialog 
+        open={isTransactionDialogOpen} 
+        onOpenChange={handleTransactionDialogChange}
+        transactionToEdit={transactionToEdit}
+        mode={dialogMode}
+      />
+    </LayoutActionsContext.Provider>
   );
 }
-
-    

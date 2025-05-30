@@ -1,19 +1,31 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Transaction } from '@/types';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import { compareDesc, parseISO } from 'date-fns';
 
 interface TransactionContextType {
   transactions: Transaction[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
-  // updateTransaction: (transaction: Transaction) => void; // For future use
-  // deleteTransaction: (id: string) => void; // For future use
+  updateTransaction: (transaction: Transaction) => void;
+  deleteTransaction: (id: string) => void;
   isLoading: boolean;
 }
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
+
+// Helper function to sort transactions: newest first by date, then by time
+const sortTransactions = (transactions: Transaction[]): Transaction[] => {
+  return transactions.sort((a, b) => {
+    const dateA = parseISO(`${a.date}T${a.time}:00`);
+    const dateB = parseISO(`${b.date}T${b.time}:00`);
+    return compareDesc(dateA, dateB);
+  });
+};
+
 
 export const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const [storedTransactions, setStoredTransactions] = useLocalStorage<Transaction[]>('transactions', []);
@@ -21,16 +33,14 @@ export const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Sync from localStorage on initial load after client-side mount
-    setTransactions(storedTransactions);
+    setTransactions(sortTransactions(storedTransactions));
     setIsLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // storedTransactions is not needed in dep array due to useLocalStorage internal sync
+  }, []); 
 
   useEffect(() => {
-    // Persist to localStorage whenever transactions change, if not loading
     if (!isLoading) {
-      setStoredTransactions(transactions);
+      setStoredTransactions(transactions); // sorted transactions are stored
     }
   }, [transactions, setStoredTransactions, isLoading]);
 
@@ -39,11 +49,26 @@ export const TransactionProvider = ({ children }: { children: ReactNode }) => {
       ...transaction,
       id: crypto.randomUUID(),
     };
-    setTransactions((prevTransactions) => [newTransaction, ...prevTransactions]);
+    setTransactions((prevTransactions) => sortTransactions([newTransaction, ...prevTransactions]));
   };
 
+  const updateTransaction = (updatedTransaction: Transaction) => {
+    setTransactions((prevTransactions) => 
+      sortTransactions(
+        prevTransactions.map((t) => (t.id === updatedTransaction.id ? updatedTransaction : t))
+      )
+    );
+  };
+
+  const deleteTransaction = (id: string) => {
+    setTransactions((prevTransactions) => 
+      sortTransactions(prevTransactions.filter((t) => t.id !== id))
+    );
+  };
+
+
   return (
-    <TransactionContext.Provider value={{ transactions, addTransaction, isLoading }}>
+    <TransactionContext.Provider value={{ transactions, addTransaction, updateTransaction, deleteTransaction, isLoading }}>
       {children}
     </TransactionContext.Provider>
   );
@@ -56,3 +81,4 @@ export const useTransactions = () => {
   }
   return context;
 };
+

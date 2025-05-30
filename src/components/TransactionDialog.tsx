@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -20,8 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
-import { format, parse } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { format, parse, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTransactions } from '@/contexts/TransactionContext';
 import type { Transaction, TransactionType, Category } from '@/types';
@@ -30,88 +31,119 @@ import { useToast } from '@/hooks/use-toast';
 
 interface TransactionDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean, details?: { transaction?: Transaction | null; operationMode?: 'add' | 'edit' }) => void;
+  transactionToEdit?: Transaction | null;
+  mode?: 'add' | 'edit';
 }
 
 const formSchema = z.object({
-  type: z.enum(['income', 'expense'], { required_error: "Transaction type is required." }),
-  amount: z.coerce.number().positive({ message: "Amount must be positive." }),
-  category: z.string().min(1, { message: "Category is required." }),
+  type: z.enum(['income', 'expense'], { required_error: "Jenis transaksi harus diisi." }),
+  amount: z.coerce.number().positive({ message: "Jumlah harus positif." }),
+  category: z.string().min(1, { message: "Kategori harus diisi." }),
   note: z.string().optional(),
-  date: z.date({ required_error: "Date is required." }),
-  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Invalid time format (HH:MM)." }),
+  date: z.date({ required_error: "Tanggal harus diisi." }),
+  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Format waktu tidak valid (JJ:MM)." }),
 });
 
 type TransactionFormData = z.infer<typeof formSchema>;
 
-export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps) {
-  const { addTransaction } = useTransactions();
+const formatCurrency = (amount: number) => {
+  return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+
+
+export function TransactionDialog({ open, onOpenChange, transactionToEdit, mode = 'add' }: TransactionDialogProps) {
+  const { addTransaction, updateTransaction } = useTransactions();
   const { toast } = useToast();
-  const [selectedType, setSelectedType] = useState<TransactionType>('expense');
+  const [selectedType, setSelectedType] = useState<TransactionType>(transactionToEdit?.type || 'expense');
   
-  const [currentTime, setCurrentTime] = useState('');
-  const [currentDate, setCurrentDate] = useState<Date | undefined>(undefined);
-
-  useEffect(() => {
-    if (open) {
-      const now = new Date();
-      setCurrentDate(now);
-      setCurrentTime(format(now, 'HH:mm'));
-    }
-  }, [open]);
-
   const form = useForm<TransactionFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: 'expense',
+      amount: 0,
+      category: '',
       note: '',
+      date: new Date(),
+      time: format(new Date(), 'HH:mm'),
     },
   });
 
  useEffect(() => {
-    if (open && currentDate && currentTime) {
-      form.reset({
-        type: 'expense',
-        amount: 0,
-        category: '',
-        note: '',
-        date: currentDate,
-        time: currentTime,
-      });
-      setSelectedType('expense');
+    if (open) {
+      if (mode === 'edit' && transactionToEdit) {
+        const transactionDate = parse(transactionToEdit.date, 'yyyy-MM-dd', new Date());
+        form.reset({
+          type: transactionToEdit.type,
+          amount: transactionToEdit.amount,
+          category: transactionToEdit.category,
+          note: transactionToEdit.note || '',
+          date: isValid(transactionDate) ? transactionDate : new Date(),
+          time: transactionToEdit.time,
+        });
+        setSelectedType(transactionToEdit.type);
+      } else {
+        const now = new Date();
+        form.reset({
+          type: 'expense',
+          amount: 0,
+          category: '',
+          note: '',
+          date: now,
+          time: format(now, 'HH:mm'),
+        });
+        setSelectedType('expense');
+      }
     }
-  }, [open, currentDate, currentTime, form]);
+  }, [open, mode, transactionToEdit, form]);
 
 
   const onSubmit = (data: TransactionFormData) => {
-    const transactionData: Omit<Transaction, 'id'> = {
+    const formattedDate = format(data.date, 'yyyy-MM-dd');
+    const transactionData: Omit<Transaction, 'id'> & { id?: string } = {
       ...data,
       category: data.category as Category,
-      date: format(data.date, 'yyyy-MM-dd'),
+      date: formattedDate,
     };
-    addTransaction(transactionData);
-    toast({
-      title: "Transaction Saved",
-      description: `${data.type === 'income' ? 'Income' : 'Expense'} of $${data.amount} for ${data.category} added.`,
-    });
-    onOpenChange(false);
-    form.reset();
+
+    let savedTransaction: Transaction | null = null;
+
+    if (mode === 'edit' && transactionToEdit) {
+      const updatedTx = { ...transactionData, id: transactionToEdit.id } as Transaction;
+      updateTransaction(updatedTx);
+      savedTransaction = updatedTx;
+      toast({
+        title: "Transaksi Diperbarui",
+        description: `${data.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} sebesar ${formatCurrency(data.amount)} untuk ${data.category} telah diperbarui.`,
+      });
+    } else {
+      const newTx = { ...transactionData, id: crypto.randomUUID() } as Transaction;
+      addTransaction(newTx);
+      savedTransaction = newTx;
+      toast({
+        title: "Transaksi Disimpan",
+        description: `${data.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} sebesar ${formatCurrency(data.amount)} untuk ${data.category} telah ditambahkan.`,
+      });
+    }
+    onOpenChange(false, {transaction: savedTransaction, operationMode: mode});
   };
 
   const categories = selectedType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
-  if (!open) return null; // Render nothing if not open, or handle initial values differently
+  if (!open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => onOpenChange(isOpen)}>
       <DialogContent className="sm:max-w-[480px] bg-card">
         <DialogHeader>
-          <DialogTitle>Add New Transaction</DialogTitle>
-          <DialogDescription>Fill in the details of your transaction below.</DialogDescription>
+          <DialogTitle>{mode === 'edit' ? 'Ubah Transaksi' : 'Tambah Transaksi Baru'}</DialogTitle>
+          <DialogDescription>
+            {mode === 'edit' ? 'Perbarui detail transaksi Anda di bawah ini.' : 'Isi detail transaksi Anda di bawah ini.'}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">Jenis</Label>
             <Controller
               control={form.control}
               name="type"
@@ -120,18 +152,18 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
                   onValueChange={(value) => {
                     field.onChange(value as TransactionType);
                     setSelectedType(value as TransactionType);
-                    form.setValue('category', ''); // Reset category on type change
+                    form.setValue('category', ''); 
                   }}
                   value={field.value}
                   className="flex space-x-4 mt-1"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="income" id="income" />
-                    <Label htmlFor="income">Income</Label>
+                    <Label htmlFor="income">Pemasukan</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="expense" id="expense" />
-                    <Label htmlFor="expense">Expense</Label>
+                    <Label htmlFor="expense">Pengeluaran</Label>
                   </div>
                 </RadioGroup>
               )}
@@ -140,20 +172,20 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
           </div>
 
           <div>
-            <Label htmlFor="amount">Amount</Label>
-            <Input id="amount" type="number" step="0.01" {...form.register('amount')} placeholder="e.g., 50.00" />
+            <Label htmlFor="amount">Jumlah</Label>
+            <Input id="amount" type="number" step="1" {...form.register('amount')} placeholder="Contoh: 50000" />
             {form.formState.errors.amount && <p className="text-sm text-destructive mt-1">{form.formState.errors.amount.message}</p>}
           </div>
 
           <div>
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">Kategori</Label>
             <Controller
               control={form.control}
               name="category"
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat) => (
@@ -167,7 +199,7 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
           </div>
           
           <div>
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">Tanggal</Label>
             <Controller
               control={form.control}
               name="date"
@@ -182,7 +214,7 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      {field.value ? format(field.value, "PPP", { locale: require('date-fns/locale/id') }) : <span>Pilih tanggal</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -191,6 +223,7 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      locale={require('date-fns/locale/id')}
                     />
                   </PopoverContent>
                 </Popover>
@@ -200,20 +233,20 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
           </div>
 
           <div>
-            <Label htmlFor="time">Time</Label>
+            <Label htmlFor="time">Waktu</Label>
             <Input id="time" type="time" {...form.register('time')} />
             {form.formState.errors.time && <p className="text-sm text-destructive mt-1">{form.formState.errors.time.message}</p>}
           </div>
 
           <div>
-            <Label htmlFor="note">Note (Optional)</Label>
-            <Textarea id="note" {...form.register('note')} placeholder="e.g., Lunch with client" />
+            <Label htmlFor="note">Catatan (Opsional)</Label>
+            <Textarea id="note" {...form.register('note')} placeholder="Contoh: Makan siang dengan klien" />
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Batal</Button>
             <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save Transaction'}
+              {form.formState.isSubmitting ? (mode === 'edit' ? 'Memperbarui...' : 'Menyimpan...') : (mode === 'edit' ? 'Perbarui Transaksi' : 'Simpan Transaksi')}
             </Button>
           </DialogFooter>
         </form>
@@ -221,3 +254,4 @@ export function TransactionDialog({ open, onOpenChange }: TransactionDialogProps
     </Dialog>
   );
 }
+

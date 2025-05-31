@@ -9,7 +9,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import type { SectorProps } from 'recharts';
 import { TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 
 interface ExpensePieChartProps {
   transactions: Transaction[];
@@ -131,7 +131,6 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
             <TrendingDown className="h-5 w-5 mr-2 text-primary" />
             Distribusi Pengeluaran
           </CardTitle>
-          {/* <CardDescription>Tidak ada data pengeluaran untuk ditampilkan.</CardDescription> */}
         </CardHeader>
         <CardContent className="flex justify-center items-center h-[300px]">
           <p className="text-muted-foreground">Masukkan beberapa pengeluaran untuk melihat grafik.</p>
@@ -158,7 +157,6 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
           <TrendingDown className="h-5 w-5 mr-2 text-primary" />
           Distribusi Pengeluaran
         </CardTitle>
-        {/* <CardDescription>Rincian visual pengeluaran Anda berdasarkan kategori. Klik irisan atau item untuk fokus.</CardDescription> */}
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
@@ -223,23 +221,13 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
               </Pie>
               <text
                 x="50%"
-                y="48%"
+                y="50%"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="text-xl font-semibold pointer-events-none"
                 style={{ fill: 'hsl(var(--foreground))' }}
               >
                 {formatCurrency(totalExpenses)}
-              </text>
-              <text
-                x="50%"
-                y="58%"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="text-xs pointer-events-none"
-                style={{ fill: 'hsl(var(--muted-foreground))' }}
-              >
-                Total Pengeluaran
               </text>
             </PieChart>
           </ResponsiveContainer>

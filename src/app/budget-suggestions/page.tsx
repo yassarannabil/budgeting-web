@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTransactions } from '@/contexts/TransactionContext';
@@ -108,10 +108,9 @@ export default function BudgetSuggestionsPage() {
             <Lightbulb className="h-6 w-6 mr-2 text-primary" />
             Saran Anggaran AI
           </CardTitle>
-          {/* <CardDescription>
-            Biarkan alat cerdas kami menganalisis kebiasaan belanja Anda dan menyarankan anggaran yang dipersonalisasi untuk Anda.
-            Ini bekerja paling baik dengan jumlah data pengeluaran historis yang wajar.
-          </CardDescription> */}
+          <CardDescription>
+            Biarkan alat cerdas kami menganalisis kebiasaan belanja Anda dan menyarankan anggaran yang dipersonalisasi untuk Anda. Fitur ini bekerja optimal dengan data riwayat pengeluaran yang cukup.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
           <Button onClick={handleSuggestBudgets} disabled={isLoading || transactionsLoading} size="lg">
@@ -150,7 +149,6 @@ export default function BudgetSuggestionsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Saran Anggaran Bulanan</CardTitle>
-            {/* <CardDescription>Berdasarkan riwayat pengeluaran Anda, berikut adalah beberapa jumlah bulanan yang disarankan untuk kategori pengeluaran Anda.</CardDescription> */}
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] w-full">
@@ -178,7 +176,6 @@ export default function BudgetSuggestionsPage() {
          <Card>
             <CardHeader>
                 <CardTitle>Tidak Ada Saran Dihasilkan</CardTitle>
-                {/* <CardDescription>AI tidak dapat menghasilkan saran anggaran dengan data saat ini.</CardDescription> */}
             </CardHeader>
             <CardContent>
                 <p className="text-muted-foreground">Coba tambahkan transaksi pengeluaran yang lebih beragam atau coba lagi nanti.</p>

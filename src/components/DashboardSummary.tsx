@@ -36,7 +36,7 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
             <div className="text-xl md:text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
-            <p className="text-xs text-muted-foreground">Dari semua transaksi pemasukan</p>
+            {/* <p className="text-xs text-muted-foreground">Dari semua transaksi pemasukan</p> */}
           </CardContent>
         </Card>
       </div>
@@ -50,7 +50,7 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0 md:px-6 md:pb-6">
             <div className="text-xl md:text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
-            <p className="text-xs text-muted-foreground">Dari semua transaksi pengeluaran</p>
+            {/* <p className="text-xs text-muted-foreground">Dari semua transaksi pengeluaran</p> */}
           </CardContent>
         </Card>
       </div>
@@ -66,7 +66,7 @@ export function DashboardSummary({ transactions }: DashboardSummaryProps) {
             <div className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(balance)}
             </div>
-            <p className="text-xs text-muted-foreground">Pemasukan dikurangi pengeluaran</p>
+            {/* <p className="text-xs text-muted-foreground">Pemasukan dikurangi pengeluaran</p> */}
           </CardContent>
         </Card>
       </div>

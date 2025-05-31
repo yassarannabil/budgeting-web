@@ -77,6 +77,7 @@ export default function DashboardPage() {
       
       <DashboardSummary transactions={filteredTransactions} />
       
+      {/* Bagian yang dihilangkan:
       <Card>
         <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground">Lihat analisa pengeluaran dalam bentuk grafik.</p>
@@ -88,6 +89,7 @@ export default function DashboardPage() {
             </Link>
         </CardContent>
       </Card>
+      */}
 
       <TransactionHistoryTable transactions={filteredTransactions} />
     </div>

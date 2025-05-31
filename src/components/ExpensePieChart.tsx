@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import type { Transaction } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
@@ -131,7 +131,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
             <TrendingDown className="h-5 w-5 mr-2 text-primary" />
             Distribusi Pengeluaran
           </CardTitle>
-          <CardDescription>Tidak ada data pengeluaran untuk ditampilkan.</CardDescription>
+          {/* <CardDescription>Tidak ada data pengeluaran untuk ditampilkan.</CardDescription> */}
         </CardHeader>
         <CardContent className="flex justify-center items-center h-[300px]">
           <p className="text-muted-foreground">Masukkan beberapa pengeluaran untuk melihat grafik.</p>
@@ -158,7 +158,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
           <TrendingDown className="h-5 w-5 mr-2 text-primary" />
           Distribusi Pengeluaran
         </CardTitle>
-        <CardDescription>Rincian visual pengeluaran Anda berdasarkan kategori. Klik irisan atau item untuk fokus.</CardDescription>
+        {/* <CardDescription>Rincian visual pengeluaran Anda berdasarkan kategori. Klik irisan atau item untuk fokus.</CardDescription> */}
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">

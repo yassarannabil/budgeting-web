@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, HelpCircle, LogOut, UserCircle2 } from 'lucide-react';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ export default function AccountPage() {
             <UserCircle2 className="h-10 w-10 text-primary" />
             <div>
               <CardTitle className="text-2xl">Akun Saya</CardTitle>
-              <CardDescription>Kelola informasi akun dan preferensi Anda.</CardDescription>
+              {/* <CardDescription>Kelola informasi akun dan preferensi Anda.</CardDescription> */}
             </div>
           </div>
         </CardHeader>
@@ -56,5 +56,3 @@ export default function AccountPage() {
     </div>
   );
 }
-
-    

@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
+  // DialogDescription, // Removed
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -138,11 +138,11 @@ export function TransactionDialog({ open, onOpenChange, transactionToEdit, mode 
       <DialogContent className="sm:max-w-[480px] bg-card">
         <DialogHeader>
           <DialogTitle>{mode === 'edit' ? 'Ubah Transaksi' : 'Tambah Transaksi Baru'}</DialogTitle>
-          <DialogDescription>
+          {/* <DialogDescription>
             {mode === 'edit' ? 'Perbarui detail transaksi Anda di bawah ini.' : 'Isi detail transaksi Anda di bawah ini.'}
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2"> {/* Added pt-2 to compensate for removed description */}
           <div>
             <Label htmlFor="type">Jenis</Label>
             <Controller

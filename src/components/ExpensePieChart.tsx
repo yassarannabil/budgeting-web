@@ -9,7 +9,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import type { SectorProps } from 'recharts';
 import { TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ExpensePieChartProps {
   transactions: Transaction[];
@@ -42,7 +42,7 @@ const ActiveSector = (props: SectorProps) => {
       cx={cx}
       cy={cy}
       innerRadius={innerRadius}
-      outerRadius={outerRadius + 8} 
+      outerRadius={outerRadius + 8}
       startAngle={startAngle}
       endAngle={endAngle}
       fill={fill}

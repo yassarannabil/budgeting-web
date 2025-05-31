@@ -14,11 +14,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestBudgetsInputSchema = z.object({
-  historicalTransactions: z.string().describe('String JSON yang berisi data transaksi historis. Setiap transaksi harus memiliki field kategori dan jumlah.'),
+  historicalTransactions: z.string().describe('A JSON string containing historical transaction data. Each transaction should have a category and amount field.'),
 });
 export type SuggestBudgetsInput = z.infer<typeof SuggestBudgetsInputSchema>;
 
-const SuggestBudgetsOutputSchema = z.record(z.string(), z.number()).describe('Objek JSON di mana kunci adalah kategori pengeluaran dan nilai adalah jumlah anggaran yang disarankan untuk setiap kategori.');
+const SuggestBudgetsOutputSchema = z.record(z.string(), z.number()).describe('A JSON object where keys are spending categories and values are the suggested budget amounts for each category.');
 export type SuggestBudgetsOutput = z.infer<typeof SuggestBudgetsOutputSchema>;
 
 export async function suggestBudgets(input: SuggestBudgetsInput): Promise<SuggestBudgetsOutput> {
@@ -29,12 +29,12 @@ const prompt = ai.definePrompt({
   name: 'suggestBudgetsPrompt',
   input: {schema: SuggestBudgetsInputSchema},
   output: {schema: SuggestBudgetsOutputSchema},
-  prompt: `You are a personal finance advisor. Analyze the user's historical spending data and suggest reasonable monthly budget amounts for each category. The categories provided in the historical data are in Indonesian. Your output keys (categories) should also be in Indonesian, matching the input categories.
+  prompt: `You are a personal finance advisor. Analyze the user's historical spending data and suggest reasonable monthly budget amounts for each category. The categories provided in the historical data are in English. Your output keys (categories) should also be in English, matching the input categories.
 
   Historical Transactions (JSON string):
   {{historicalTransactions}}
 
-  Provide the output as a JSON object where keys are spending categories (in Indonesian) and values are the suggested budget amounts for each category. Do not include any text other than the JSON object. Ensure the category names in the output JSON exactly match the Indonesian category names from the input if possible.
+  Provide the output as a JSON object where keys are spending categories (in English) and values are the suggested budget amounts for each category. Do not include any text other than the JSON object. Ensure the category names in the output JSON exactly match the English category names from the input if possible.
   `,
 });
 

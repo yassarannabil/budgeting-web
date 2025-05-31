@@ -29,7 +29,7 @@ const COLORS = [
 ];
 
 const formatCurrency = (amount: number) => {
-  return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return `Rp ${amount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 };
 
 const ActiveSector = (props: SectorProps) => {
@@ -42,11 +42,11 @@ const ActiveSector = (props: SectorProps) => {
       cx={cx}
       cy={cy}
       innerRadius={innerRadius}
-      outerRadius={outerRadius + 8} // Make the active sector "pop out"
+      outerRadius={outerRadius + 8} 
       startAngle={startAngle}
       endAngle={endAngle}
       fill={fill}
-      stroke={'hsl(var(--background))'} // Add a border to the active sector
+      stroke={'hsl(var(--background))'}
       strokeWidth={2}
     />
   );
@@ -129,12 +129,12 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
         <CardHeader>
           <CardTitle className="flex items-center">
             <TrendingDown className="h-5 w-5 mr-2 text-primary" />
-            Expense Distribution
+            Distribusi Pengeluaran
           </CardTitle>
-          <CardDescription>No expense data available to display.</CardDescription>
+          <CardDescription>Tidak ada data pengeluaran untuk ditampilkan.</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center items-center h-[300px]">
-          <p className="text-muted-foreground">Enter some expenses to see the chart.</p>
+          <p className="text-muted-foreground">Masukkan beberapa pengeluaran untuk melihat grafik.</p>
         </CardContent>
       </Card>
     );
@@ -156,9 +156,9 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
       <CardHeader>
         <CardTitle className="flex items-center">
           <TrendingDown className="h-5 w-5 mr-2 text-primary" />
-          Expense Distribution
+          Distribusi Pengeluaran
         </CardTitle>
-        <CardDescription>Visual breakdown of your spending by category. Click a slice or item to focus.</CardDescription>
+        <CardDescription>Rincian visual pengeluaran Anda berdasarkan kategori. Klik irisan atau item untuk fokus.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-square h-[300px] w-full mx-auto max-w-xs sm:max-w-sm md:max-w-md">
@@ -239,7 +239,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
                 className="text-xs pointer-events-none"
                 style={{ fill: 'hsl(var(--muted-foreground))' }}
               >
-                Total Expenses
+                Total Pengeluaran
               </text>
             </PieChart>
           </ResponsiveContainer>
@@ -249,7 +249,7 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
             <h3
               className="text-md font-semibold text-center mb-3"
             >
-              Expense Summary by Category
+              Ringkasan Pengeluaran per Kategori
             </h3>
             <div className="space-y-2">
               {expenseData.map((entry, index) => {

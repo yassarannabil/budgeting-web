@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { id as idLocale } from 'date-fns/locale/id';
 import type { DateRange, DateRangeFilter as DateRangeFilterType } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +30,6 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   useEffect(() => {
-    // Initialize with 'thisMonth'
     const now = new Date();
     onFilterChange('thisMonth', { from: startOfMonth(now), to: endOfMonth(now) });
   }, [onFilterChange]);
@@ -54,16 +54,15 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
         range = { from: startOfYear(now), to: endOfYear(now) };
         break;
       case 'custom':
-        // If switching to custom, use current customDateRange or default to this month
         range = customDateRange.from ? customDateRange : { from: startOfMonth(now), to: endOfMonth(now) };
-        setIsPopoverOpen(true); // Open popover for custom range selection
+        setIsPopoverOpen(true);
         break;
       default:
         range = { from: startOfMonth(now), to: endOfMonth(now) };
     }
     if (filterType !== 'custom') {
-      setCustomDateRange(range); // Sync customDateRange if not custom
-      setIsPopoverOpen(false); // Close popover if not custom
+      setCustomDateRange(range); 
+      setIsPopoverOpen(false);
     }
     onFilterChange(filterType, range);
   };
@@ -72,7 +71,6 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
     if (range?.from) {
       const newRange = {from: range.from, to: range.to || range.from };
       setCustomDateRange(newRange);
-      // Only apply if custom is already selected, otherwise it's just updating the popover state
       if (selectedFilter === 'custom') {
         onFilterChange('custom', newRange);
       }
@@ -91,14 +89,14 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
       <Select value={selectedFilter} onValueChange={handleFilterTypeChange}>
         <SelectTrigger className="w-full sm:w-[180px]">
           <SlidersHorizontal className="h-4 w-4 mr-2" />
-          <SelectValue placeholder="Select date range" />
+          <SelectValue placeholder="Pilih rentang tanggal" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="today">Today</SelectItem>
-          <SelectItem value="last7days">Last 7 Days</SelectItem>
-          <SelectItem value="thisMonth">This Month</SelectItem>
-          <SelectItem value="thisYear">This Year</SelectItem>
-          <SelectItem value="custom">Custom Range</SelectItem>
+          <SelectItem value="today">Hari Ini</SelectItem>
+          <SelectItem value="last7days">7 Hari Terakhir</SelectItem>
+          <SelectItem value="thisMonth">Bulan Ini</SelectItem>
+          <SelectItem value="thisYear">Tahun Ini</SelectItem>
+          <SelectItem value="custom">Rentang Kustom</SelectItem>
         </SelectContent>
       </Select>
 
@@ -117,14 +115,14 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
               {customDateRange.from ? (
                 customDateRange.to ? (
                   <>
-                    {format(customDateRange.from, "LLL dd, y")} -{" "}
-                    {format(customDateRange.to, "LLL dd, y")}
+                    {format(customDateRange.from, "PPP", { locale: idLocale })} -{" "}
+                    {format(customDateRange.to, "PPP", { locale: idLocale })}
                   </>
                 ) : (
-                  format(customDateRange.from, "LLL dd, y")
+                  format(customDateRange.from, "PPP", { locale: idLocale })
                 )
               ) : (
-                <span>Pick a date range</span>
+                <span>Pilih rentang tanggal</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -136,9 +134,10 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
               selected={customDateRange}
               onSelect={handleCustomDateChange}
               numberOfMonths={2}
+              locale={idLocale}
             />
             <div className="p-2 border-t">
-              <Button onClick={applyCustomRange} size="sm" className="w-full">Apply</Button>
+              <Button onClick={applyCustomRange} size="sm" className="w-full">Terapkan</Button>
             </div>
           </PopoverContent>
         </Popover>

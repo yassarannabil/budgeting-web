@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTransactions } from '@/contexts/TransactionContext';
 import type { SuggestBudgetsInput, SuggestBudgetsOutput } from '@/ai/flows/suggest-budgets';
 import { suggestBudgets } from '@/ai/flows/suggest-budgets';
@@ -13,7 +13,7 @@ import { Lightbulb, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const formatCurrency = (amount: number) => {
-  return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  return `Rp ${amount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 };
 
 export default function BudgetSuggestionsPage() {
@@ -34,27 +34,26 @@ export default function BudgetSuggestionsPage() {
     setSuggestions(null);
 
     if (transactions.length === 0) {
-      setError("No transaction history available to suggest budgets. Please add some transactions first.");
+      setError("Tidak ada riwayat transaksi untuk menyarankan anggaran. Harap tambahkan beberapa transaksi terlebih dahulu.");
       setIsLoading(false);
       toast({
-        title: "No Transactions",
-        description: "Add some transactions to get budget suggestions.",
+        title: "Tidak Ada Transaksi",
+        description: "Tambahkan beberapa transaksi untuk mendapatkan saran anggaran.",
         variant: "destructive",
       });
       return;
     }
     
-    // Filter for expenses and simplify data for the AI
     const expenseTransactionsForAI = transactions
       .filter(t => t.type === 'expense')
       .map(t => ({ category: t.category, amount: t.amount }));
 
     if (expenseTransactionsForAI.length === 0) {
-      setError("No expense transaction history available to suggest budgets. Please add some expenses first.");
+      setError("Tidak ada riwayat transaksi pengeluaran untuk menyarankan anggaran. Harap tambahkan beberapa pengeluaran terlebih dahulu.");
       setIsLoading(false);
        toast({
-        title: "No Expenses",
-        description: "Add expense transactions to get budget suggestions.",
+        title: "Tidak Ada Pengeluaran",
+        description: "Tambahkan transaksi pengeluaran untuk mendapatkan saran anggaran.",
         variant: "destructive",
       });
       return;
@@ -67,25 +66,25 @@ export default function BudgetSuggestionsPage() {
     try {
       const result = await suggestBudgets(input);
       if (Object.keys(result).length === 0) {
-        setError("The AI couldn't generate budget suggestions at this time. This might be due to limited data or a temporary issue.");
+        setError("AI tidak dapat menghasilkan saran anggaran saat ini. Ini mungkin karena data terbatas atau masalah sementara.");
          toast({
-          title: "Suggestion Failed",
-          description: "AI could not generate suggestions. Try again later or add more diverse transactions.",
+          title: "Saran Gagal",
+          description: "AI tidak dapat menghasilkan saran. Coba lagi nanti atau tambahkan transaksi yang lebih beragam.",
           variant: "destructive",
         });
       } else {
         setSuggestions(result);
         toast({
-          title: "Budgets Suggested!",
-          description: "AI has generated budget suggestions for you.",
+          title: "Anggaran Disarankan!",
+          description: "AI telah menghasilkan saran anggaran untuk Anda.",
         });
       }
     } catch (e) {
       console.error("Error suggesting budgets:", e);
-      setError("Failed to get budget suggestions. Please try again later.");
+      setError("Gagal mendapatkan saran anggaran. Silakan coba lagi nanti.");
       toast({
-        title: "Error",
-        description: "An unexpected error occurred while fetching budget suggestions.",
+        title: "Kesalahan",
+        description: "Terjadi kesalahan tak terduga saat mengambil saran anggaran.",
         variant: "destructive",
       });
     } finally {
@@ -107,11 +106,11 @@ export default function BudgetSuggestionsPage() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Lightbulb className="h-6 w-6 mr-2 text-primary" />
-            AI Budget Suggestions
+            Saran Anggaran AI
           </CardTitle>
           <CardDescription>
-            Let our intelligent tool analyze your spending habits and suggest personalized budgets for you.
-            This works best with a reasonable amount of historical expense data.
+            Biarkan alat cerdas kami menganalisis kebiasaan belanja Anda dan menyarankan anggaran yang dipersonalisasi untuk Anda.
+            Ini bekerja paling baik dengan jumlah data pengeluaran historis yang wajar.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
@@ -119,15 +118,15 @@ export default function BudgetSuggestionsPage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                Menghasilkan...
               </>
             ) : (
-              'Suggest My Budgets'
+              'Sarankan Anggaran Saya'
             )}
           </Button>
           {transactions.length === 0 && !transactionsLoading && (
              <p className="text-sm text-muted-foreground">
-                Add some transactions first to enable budget suggestions.
+                Tambahkan beberapa transaksi terlebih dahulu untuk mengaktifkan saran anggaran.
             </p>
           )}
         </CardContent>
@@ -138,7 +137,7 @@ export default function BudgetSuggestionsPage() {
           <CardHeader>
             <CardTitle className="flex items-center text-destructive">
               <AlertCircle className="h-5 w-5 mr-2" />
-              Error
+              Kesalahan
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -150,16 +149,16 @@ export default function BudgetSuggestionsPage() {
       {suggestions && Object.keys(suggestions).length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Suggested Monthly Budgets</CardTitle>
-            <CardDescription>Based on your spending history, here are some suggested monthly amounts for your expense categories.</CardDescription>
+            <CardTitle>Saran Anggaran Bulanan</CardTitle>
+            <CardDescription>Berdasarkan riwayat pengeluaran Anda, berikut adalah beberapa jumlah bulanan yang disarankan untuk kategori pengeluaran Anda.</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Suggested Amount</TableHead>
+                    <TableHead>Kategori</TableHead>
+                    <TableHead className="text-right">Jumlah yang Disarankan</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -178,11 +177,11 @@ export default function BudgetSuggestionsPage() {
        {suggestions && Object.keys(suggestions).length === 0 && !error && !isLoading && (
          <Card>
             <CardHeader>
-                <CardTitle>No Suggestions Generated</CardTitle>
-                <CardDescription>The AI could not generate budget suggestions with the current data.</CardDescription>
+                <CardTitle>Tidak Ada Saran Dihasilkan</CardTitle>
+                <CardDescription>AI tidak dapat menghasilkan saran anggaran dengan data saat ini.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">Try adding more diverse expense transactions or try again later.</p>
+                <p className="text-muted-foreground">Coba tambahkan transaksi pengeluaran yang lebih beragam atau coba lagi nanti.</p>
             </CardContent>
          </Card>
        )}

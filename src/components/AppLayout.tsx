@@ -37,7 +37,7 @@ import type { Transaction } from '@/types';
 const commonNavItems = [
   { href: '/', label: 'Dasbor', icon: LayoutDashboard, mobileLabel: 'Catatan', mobileIcon: ScrollText },
   { href: '/analytics', label: 'Analisa Grafik', icon: BarChart3, mobileLabel: 'Analisa', mobileIcon: PieChartIcon },
-  { href: '/budget-suggestions', label: 'Saran Anggaran', icon: Lightbulb, mobileLabel: 'Budget', mobileIcon: Lightbulb },
+  { href: '/budget-suggestions', label: 'Saran Anggaran', icon: Lightbulb, mobileLabel: 'Anggaran', mobileIcon: Lightbulb },
   { href: '/account', label: 'Akun', icon: User, mobileLabel: 'Akun', mobileIcon: User },
 ];
 
@@ -55,9 +55,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if (currentNavItem) {
       setPageTitle(isMobile ? currentNavItem.mobileLabel : currentNavItem.label);
     } else {
+      // Fallback for pages not in navItems e.g. /privacy-policy
       const segments = pathname.split('/').filter(Boolean);
       const lastSegment = segments.pop();
-      setPageTitle(lastSegment ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace('-', ' ') : 'SpendWise');
+      let title = lastSegment ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ') : 'SpendWise';
+      if (title === "Privacy policy") title = "Kebijakan Privasi";
+      if (title === "Terms of service") title = "Ketentuan Layanan";
+      setPageTitle(title);
     }
   }, [pathname, isMobile]);
 
@@ -82,7 +86,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const handleTransactionDialogChange = (open: boolean) => {
     setIsTransactionDialogOpen(open);
     if (!open) {
-      setTransactionToEdit(null); // Reset transactionToEdit when dialog is closed
+      setTransactionToEdit(null); 
     }
   };
 
@@ -106,7 +110,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className="overflow-hidden rounded-full"
                 >
                   <Avatar>
-                    <AvatarImage src="https://placehold.co/32x32.png" alt="Avatar Pengguna" data-ai-hint="user avatar" />
+                    <AvatarImage src="https://placehold.co/32x32.png" alt="Avatar Pengguna" data-ai-hint="user avatar"/>
                     <AvatarFallback>SW</AvatarFallback>
                   </Avatar>
                 </Button>

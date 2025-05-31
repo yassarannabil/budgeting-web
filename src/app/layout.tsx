@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SpendWise - Smart Budgeting',
-  description: 'Manage your finances effectively with SpendWise.',
+  title: 'SpendWise - Anggaran Cerdas',
+  description: 'Kelola keuangan Anda secara efektif dengan SpendWise.',
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang="id" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground font-sans" suppressHydrationWarning>
         <TransactionProvider>
           <AppLayout> {/* Use AppLayout here */}

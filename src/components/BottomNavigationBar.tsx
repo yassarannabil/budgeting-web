@@ -16,7 +16,7 @@ const navItems = [
   { href: '/', label: 'Catatan', icon: ScrollText },
   { href: '/analytics', label: 'Analisa', icon: PieChartIcon },
   { isCentralButton: true, label: 'Tambah', icon: Plus, action: 'addTransaction' },
-  { href: '/budget-suggestions', label: 'Budget', icon: Lightbulb },
+  { href: '/budget-suggestions', label: 'Anggaran', icon: Lightbulb },
   { href: '/account', label: 'Akun', icon: User },
 ];
 
@@ -59,5 +59,4 @@ export default function BottomNavigationBar({ onAddTransactionClick }: BottomNav
     </nav>
   );
 }
-
     

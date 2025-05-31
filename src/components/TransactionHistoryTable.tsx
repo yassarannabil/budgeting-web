@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -11,16 +11,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { Transaction } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ListCollapse, MoreVertical, Edit3, Trash2 } from 'lucide-react';
+import { ListCollapse } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +27,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useLayoutActions } from '@/contexts/LayoutActionsContext';
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { TransactionRowActions } from './TransactionRowActions'; 
 
-const formatCurrency = (amount: number) => {
-  return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const formatCurrencyForHistory = (amount: number) => {
+  return `Rp ${amount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 };
 
 const formatDateForDisplay = (dateString: string) => {
@@ -58,7 +53,7 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
   const { openEditTransactionDialog } = useLayoutActions();
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-
+  
   const handleDeleteConfirm = () => {
     if (transactionToDelete) {
       deleteTransaction(transactionToDelete.id);
@@ -127,7 +122,7 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
         </div>
         <CardDescription className="mt-1">Catatan aktivitas keuangan terakhir Anda.</CardDescription>
       </CardHeader>
-      <CardContent className="p-6 pt-0"> {/* Restored default padding */}
+      <CardContent className="p-6 pt-0">
         <ScrollArea className="h-[400px] w-full">
           <Table>
             <TableBody>
@@ -153,30 +148,17 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
                                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                               )}
                             >
-                              {transaction.type === 'income' ? '+' : '-'}
-                              {formatCurrency(Math.abs(transaction.amount))}
+                              {transaction.type === 'income' ? '+ ' : '- '}
+                              {formatCurrencyForHistory(Math.abs(transaction.amount))}
                             </div>
                             <div className="text-xs text-muted-foreground">{transaction.time}</div>
                           </div>
                           {isEditMode && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVertical className="h-4 w-4" />
-                                  <span className="sr-only">Opsi</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditTransactionDialog(transaction)}>
-                                  <Edit3 className="mr-2 h-4 w-4" />
-                                  Ubah
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setTransactionToDelete(transaction)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Hapus
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <TransactionRowActions
+                              transaction={transaction}
+                              openEditTransactionDialog={openEditTransactionDialog}
+                              setTransactionToDelete={setTransactionToDelete}
+                            />
                           )}
                         </div>
                       </TableCell>
@@ -209,4 +191,3 @@ export function TransactionHistoryTable({ transactions }: TransactionHistoryTabl
     </Card>
   );
 }
-

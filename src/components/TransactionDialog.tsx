@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
+import { id as idLocale } from 'date-fns/locale/id';
 import { cn } from '@/lib/utils';
 import { useTransactions } from '@/contexts/TransactionContext';
 import type { Transaction, TransactionType, Category } from '@/types';
@@ -48,7 +49,7 @@ const formSchema = z.object({
 type TransactionFormData = z.infer<typeof formSchema>;
 
 const formatCurrency = (amount: number) => {
-  return amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return `Rp ${amount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 };
 
 
@@ -214,7 +215,7 @@ export function TransactionDialog({ open, onOpenChange, transactionToEdit, mode 
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.value ? format(field.value, "PPP", { locale: require('date-fns/locale/id') }) : <span>Pilih tanggal</span>}
+                      {field.value ? format(field.value, "PPP", { locale: idLocale }) : <span>Pilih tanggal</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -223,7 +224,7 @@ export function TransactionDialog({ open, onOpenChange, transactionToEdit, mode 
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
-                      locale={require('date-fns/locale/id')}
+                      locale={idLocale}
                     />
                   </PopoverContent>
                 </Popover>
@@ -254,4 +255,3 @@ export function TransactionDialog({ open, onOpenChange, transactionToEdit, mode 
     </Dialog>
   );
 }
-

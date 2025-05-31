@@ -33,11 +33,11 @@ export default function AccountPage() {
           </Button>
           <Button variant="outline" className="w-full justify-start gap-2">
             <HelpCircle className="h-5 w-5" />
-            Pusat Bantuan & Support
+            Pusat Bantuan & Dukungan
           </Button>
           <Button variant="destructive" className="w-full justify-start gap-2">
             <LogOut className="h-5 w-5" />
-            Logout
+            Keluar
           </Button>
         </CardContent>
       </Card>

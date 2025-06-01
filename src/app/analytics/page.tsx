@@ -11,7 +11,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   isWithinInterval, parseISO, startOfDay, endOfDay, format, isSameDay,
   addDays, addMonths, addYears, addWeeks,
-  startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek
+  startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek,
+  isAfter
 } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale/id';
 import { Button } from '@/components/ui/button';
@@ -88,12 +89,43 @@ export default function AnalyticsPage() {
     }
   }, [currentDateRange, currentFilterType]);
 
+  const isNextNavigationDisabled = useMemo(() => {
+    if (!currentDateRange?.from || currentFilterType === 'custom') {
+      return true;
+    }
+    const today = new Date();
+    const currentRangeFrom = startOfDay(currentDateRange.from);
+
+    switch (currentFilterType) {
+      case 'today':
+        return isSameDay(currentRangeFrom, startOfDay(today)) || isAfter(currentRangeFrom, startOfDay(today));
+      case 'thisWeek':
+        const startOfSelectedWeek = startOfWeek(currentRangeFrom, { weekStartsOn: 1, locale: idLocale });
+        const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1, locale: idLocale });
+        return isSameDay(startOfSelectedWeek, startOfCurrentWeek) || isAfter(startOfSelectedWeek, startOfCurrentWeek);
+      case 'thisMonth':
+        const startOfSelectedMonth = startOfMonth(currentRangeFrom);
+        const startOfCurrentMonth = startOfMonth(today);
+        return isSameDay(startOfSelectedMonth, startOfCurrentMonth) || isAfter(startOfSelectedMonth, startOfCurrentMonth);
+      case 'thisYear':
+        const startOfSelectedYear = startOfYear(currentRangeFrom);
+        const startOfCurrentYear = startOfYear(today);
+        return isSameDay(startOfSelectedYear, startOfCurrentYear) || isAfter(startOfSelectedYear, startOfCurrentYear);
+      default:
+        return false;
+    }
+  }, [currentDateRange, currentFilterType]);
+
   const navigatePeriod = (direction: 'previous' | 'next') => {
     if (!currentDateRange?.from || currentFilterType === 'custom') return;
 
+    if (direction === 'next' && isNextNavigationDisabled) {
+      return;
+    }
+
     let newFromDate: Date = currentDateRange.from;
     let newToDate: Date | undefined = currentDateRange.to;
-    const D = direction === 'next' ? 1 : -1; // D for Direction multiplier
+    const D = direction === 'next' ? 1 : -1; 
 
     switch (currentFilterType) {
       case 'today':
@@ -155,7 +187,7 @@ export default function AnalyticsPage() {
                 variant="ghost" 
                 size="icon" 
                 className="h-7 w-7" 
-                disabled={!currentDateRange?.from || currentFilterType === 'custom'}
+                disabled={!currentDateRange?.from}
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -171,7 +203,7 @@ export default function AnalyticsPage() {
                 variant="ghost" 
                 size="icon" 
                 className="h-7 w-7" 
-                disabled={!currentDateRange?.from || currentFilterType === 'custom'}
+                disabled={isNextNavigationDisabled}
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>

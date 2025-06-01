@@ -8,13 +8,25 @@ import { DateRangeFilter } from '@/components/DateRangeFilter';
 import type { Transaction, DateRange, DateRangeFilter as DateRangeFilterType } from '@/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from '@/components/ui/card';
-import { isWithinInterval, parseISO, startOfDay, endOfDay, format, isSameDay } from 'date-fns';
+import { 
+  isWithinInterval, parseISO, startOfDay, endOfDay, format, isSameDay,
+  addDays, addMonths, addYears, subDays, subMonths, subYears,
+  startOfMonth, endOfMonth, startOfYear, endOfYear
+} from 'date-fns';
 import { id as idLocale } from 'date-fns/locale/id';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const { transactions, isLoading: transactionsLoading } = useTransactions();
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
-  const [currentDateRange, setCurrentDateRange] = useState<DateRange | null>(null);
+  
+  const initialDateRange = useMemo(() => {
+    const now = new Date();
+    return { from: startOfMonth(now), to: endOfMonth(now) };
+  }, []);
+
+  const [currentDateRange, setCurrentDateRange] = useState<DateRange>(initialDateRange);
   const [currentFilterType, setCurrentFilterType] = useState<DateRangeFilterType>('thisMonth');
   const [isClient, setIsClient] = useState(false);
 
@@ -27,8 +39,8 @@ export default function AnalyticsPage() {
     setCurrentDateRange(range);
   }, []);
   
-  useMemo(() => {
-    if (!currentDateRange || !currentDateRange.from) {
+  useEffect(() => {
+    if (!currentDateRange?.from) {
       setFilteredTransactions(transactions);
       return;
     }
@@ -76,12 +88,58 @@ export default function AnalyticsPage() {
     }
   }, [currentDateRange, currentFilterType]);
 
+  const navigatePeriod = (direction: 'previous' | 'next') => {
+    if (!currentDateRange?.from) return;
+
+    let newFromDate: Date = currentDateRange.from;
+    let newToDate: Date | undefined = currentDateRange.to;
+    const D = direction === 'next' ? 1 : -1;
+
+    switch (currentFilterType) {
+      case 'today':
+        newFromDate = addDays(currentDateRange.from, D * 1);
+        newToDate = newFromDate;
+        break;
+      case 'last7days':
+        newFromDate = addDays(currentDateRange.from, D * 7);
+        newToDate = currentDateRange.to ? addDays(currentDateRange.to, D * 7) : undefined;
+        break;
+      case 'thisMonth':
+        const currentMonthStartForNav = startOfMonth(currentDateRange.from);
+        newFromDate = startOfMonth(addMonths(currentMonthStartForNav, D * 1));
+        newToDate = endOfMonth(newFromDate);
+        break;
+      case 'thisYear':
+        const currentYearStartForNav = startOfYear(currentDateRange.from);
+        newFromDate = startOfYear(addYears(currentYearStartForNav, D * 1));
+        newToDate = endOfYear(newFromDate);
+        break;
+      case 'custom':
+        newFromDate = addDays(currentDateRange.from, D * 1);
+        if (currentDateRange.to) {
+            newToDate = addDays(currentDateRange.to, D * 1);
+        } else {
+            newToDate = newFromDate;
+        }
+        break;
+      default:
+        return;
+    }
+    setCurrentDateRange({ from: newFromDate, to: newToDate });
+  };
+
+  const handlePrevious = () => navigatePeriod('previous');
+  const handleNext = () => navigatePeriod('next');
+
   if (!isClient || transactionsLoading) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-8 w-48" />
+          <div className="flex flex-col w-full sm:w-auto items-stretch sm:items-end">
+            <Skeleton className="h-10 w-full sm:w-48" />
+            <Skeleton className="h-4 w-40 mt-2 self-center sm:self-end" />
+          </div>
         </div>
         <Card><CardContent className="p-6"><Skeleton className="h-80 w-full" /></CardContent></Card>
       </div>
@@ -94,17 +152,24 @@ export default function AnalyticsPage() {
         <h1 className="text-2xl font-semibold">Analisa Pengeluaran</h1>
         <div className="flex flex-col w-full sm:w-auto items-stretch sm:items-end">
           <DateRangeFilter onFilterChange={handleFilterChange} />
-          {displayDateText && (
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-center sm:text-right px-1">
-              {displayDateText}
-            </p>
-          )}
+          <div className="flex items-center justify-center sm:justify-end mt-1 gap-1 w-full">
+            <Button onClick={handlePrevious} variant="ghost" size="icon" className="h-7 w-7" disabled={!currentDateRange?.from}>
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            {displayDateText && (
+              <p className="text-xs sm:text-sm text-muted-foreground text-center px-1 min-w-[100px] sm:min-w-[150px]">
+                {displayDateText}
+              </p>
+            )}
+            <Button onClick={handleNext} variant="ghost" size="icon" className="h-7 w-7" disabled={!currentDateRange?.from}>
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
       
       <ExpensePieChart transactions={filteredTransactions} />
 
-      {/* You can add more analytical components here in the future */}
     </div>
   );
 }

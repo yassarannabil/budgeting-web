@@ -146,29 +146,33 @@ export default function AnalyticsPage() {
         <div className="flex flex-col w-full sm:w-auto items-stretch sm:items-end">
           <DateRangeFilter onFilterChange={handleFilterChange} />
           <div className="flex items-center justify-center sm:justify-end mt-1 gap-1 w-full">
-            <Button 
-              onClick={handlePrevious} 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7" 
-              disabled={!currentDateRange?.from || currentFilterType === 'custom'}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
+            {currentFilterType !== 'custom' && (
+              <Button 
+                onClick={handlePrevious} 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7" 
+                disabled={!currentDateRange?.from || currentFilterType === 'custom'}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+            )}
             {displayDateText && (
               <p className="text-xs sm:text-sm text-muted-foreground text-center px-1 min-w-[100px] sm:min-w-[150px]">
                 {displayDateText}
               </p>
             )}
-            <Button 
-              onClick={handleNext} 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7" 
-              disabled={!currentDateRange?.from || currentFilterType === 'custom'}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
+            {currentFilterType !== 'custom' && (
+              <Button 
+                onClick={handleNext} 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7" 
+                disabled={!currentDateRange?.from || currentFilterType === 'custom'}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

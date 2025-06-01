@@ -91,7 +91,7 @@ export default function DashboardPage() {
   }, [currentDateRange, currentFilterType]);
 
   const navigatePeriod = (direction: 'previous' | 'next') => {
-    if (!currentDateRange?.from) return;
+    if (!currentDateRange?.from || currentFilterType === 'custom') return;
 
     let newFromDate: Date = currentDateRange.from;
     let newToDate: Date | undefined = currentDateRange.to;
@@ -116,14 +116,7 @@ export default function DashboardPage() {
         newFromDate = startOfYear(addYears(currentYearStartForNav, D * 1));
         newToDate = endOfYear(newFromDate);
         break;
-      case 'custom':
-        newFromDate = addDays(currentDateRange.from, D * 1);
-        if (currentDateRange.to) {
-            newToDate = addDays(currentDateRange.to, D * 1);
-        } else {
-            newToDate = newFromDate;
-        }
-        break;
+      // No 'custom' case needed here due to the check at the beginning of the function
       default:
         return;
     }
@@ -160,7 +153,13 @@ export default function DashboardPage() {
         <div className="flex flex-col w-full sm:w-auto items-stretch sm:items-end">
           <DateRangeFilter onFilterChange={handleFilterChange} />
           <div className="flex items-center justify-center sm:justify-end mt-1 gap-1 w-full">
-            <Button onClick={handlePrevious} variant="ghost" size="icon" className="h-7 w-7" disabled={!currentDateRange?.from}>
+            <Button 
+              onClick={handlePrevious} 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              disabled={!currentDateRange?.from || currentFilterType === 'custom'}
+            >
               <ChevronLeft className="h-5 w-5" />
             </Button>
             {displayDateText && (
@@ -168,7 +167,13 @@ export default function DashboardPage() {
                 {displayDateText}
               </p>
             )}
-            <Button onClick={handleNext} variant="ghost" size="icon" className="h-7 w-7" disabled={!currentDateRange?.from}>
+            <Button 
+              onClick={handleNext} 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              disabled={!currentDateRange?.from || currentFilterType === 'custom'}
+            >
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>

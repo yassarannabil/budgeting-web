@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -12,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale/id';
 import type { DateRange, DateRangeFilter as DateRangeFilterType } from '@/types';
 import { cn } from '@/lib/utils';
@@ -32,7 +33,8 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
   useEffect(() => {
     const now = new Date();
     onFilterChange('thisMonth', { from: startOfMonth(now), to: endOfMonth(now) });
-  }, [onFilterChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // onFilterChange is stable
 
   const handleFilterTypeChange = (value: string) => {
     const filterType = value as DateRangeFilterType;
@@ -44,9 +46,12 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
       case 'today':
         range = { from: now, to: now };
         break;
-      case 'last7days':
-        range = { from: subDays(now, 6), to: now };
+      case 'thisWeek': {
+        const monday = startOfWeek(now, { weekStartsOn: 1, locale: idLocale });
+        const sunday = endOfWeek(now, { weekStartsOn: 1, locale: idLocale });
+        range = { from: monday, to: sunday };
         break;
+      }
       case 'thisMonth':
         range = { from: startOfMonth(now), to: endOfMonth(now) };
         break;
@@ -93,7 +98,7 @@ export function DateRangeFilter({ onFilterChange }: DateRangeFilterProps) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="today">Hari Ini</SelectItem>
-          <SelectItem value="last7days">7 Hari Terakhir</SelectItem>
+          <SelectItem value="thisWeek">Minggu Ini</SelectItem>
           <SelectItem value="thisMonth">Bulan Ini</SelectItem>
           <SelectItem value="thisYear">Tahun Ini</SelectItem>
           <SelectItem value="custom">Rentang Kustom</SelectItem>

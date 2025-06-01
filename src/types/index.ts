@@ -1,3 +1,4 @@
+
 import type { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/categories';
 
 export type TransactionType = 'income' | 'expense';
@@ -21,7 +22,7 @@ export interface BudgetSuggestion {
   amount: number;
 }
 
-export type DateRangeFilter = 'today' | 'last7days' | 'thisMonth' | 'thisYear' | 'custom';
+export type DateRangeFilter = 'today' | 'thisWeek' | 'thisMonth' | 'thisYear' | 'custom';
 
 export interface DateRange {
   from: Date | undefined;

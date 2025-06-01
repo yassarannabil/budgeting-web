@@ -11,8 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   isWithinInterval, parseISO, startOfDay, endOfDay, format, isSameDay,
-  addDays, addMonths, addYears, subDays, subMonths, subYears,
-  startOfMonth, endOfMonth, startOfYear, endOfYear
+  addDays, addMonths, addYears, addWeeks,
+  startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek
 } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale/id';
 import Link from 'next/link';
@@ -71,7 +71,7 @@ export default function DashboardPage() {
     switch (currentFilterType) {
       case 'today':
         return format(fromDate, "PPP", { locale: idLocale });
-      case 'last7days':
+      case 'thisWeek':
         return toDate ? `${format(fromDate, "PPP", { locale: idLocale })} - ${format(toDate, "PPP", { locale: idLocale })}` : format(fromDate, "PPP", { locale: idLocale });
       case 'thisMonth':
         return format(fromDate, "MMMM yyyy", { locale: idLocale });
@@ -95,28 +95,31 @@ export default function DashboardPage() {
 
     let newFromDate: Date = currentDateRange.from;
     let newToDate: Date | undefined = currentDateRange.to;
-    const D = direction === 'next' ? 1 : -1;
+    const D = direction === 'next' ? 1 : -1; // D for Direction multiplier
 
     switch (currentFilterType) {
       case 'today':
         newFromDate = addDays(currentDateRange.from, D * 1);
         newToDate = newFromDate;
         break;
-      case 'last7days':
-        newFromDate = addDays(currentDateRange.from, D * 7);
-        newToDate = currentDateRange.to ? addDays(currentDateRange.to, D * 7) : undefined;
+      case 'thisWeek': {
+        const currentWeekStart = startOfWeek(currentDateRange.from, { weekStartsOn: 1, locale: idLocale });
+        newFromDate = startOfWeek(addWeeks(currentWeekStart, D * 1), { weekStartsOn: 1, locale: idLocale });
+        newToDate = endOfWeek(newFromDate, { weekStartsOn: 1, locale: idLocale });
         break;
-      case 'thisMonth':
+      }
+      case 'thisMonth': {
         const currentMonthStartForNav = startOfMonth(currentDateRange.from);
         newFromDate = startOfMonth(addMonths(currentMonthStartForNav, D * 1));
         newToDate = endOfMonth(newFromDate);
         break;
-      case 'thisYear':
+      }
+      case 'thisYear': {
         const currentYearStartForNav = startOfYear(currentDateRange.from);
         newFromDate = startOfYear(addYears(currentYearStartForNav, D * 1));
         newToDate = endOfYear(newFromDate);
         break;
-      // No 'custom' case needed here due to the check at the beginning of the function
+      }
       default:
         return;
     }

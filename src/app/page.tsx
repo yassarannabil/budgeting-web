@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const { transactions, isLoading: transactionsLoading } = useTransactions();
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [currentDateRange, setCurrentDateRange] = useState<DateRange | null>(null);
+  const [currentFilterType, setCurrentFilterType] = useState<DateRangeFilterType>('thisMonth');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   }, []);
 
   const handleFilterChange = useCallback((filterType: DateRangeFilterType, range: DateRange) => {
+    setCurrentFilterType(filterType);
     setCurrentDateRange(range);
   }, []);
   
@@ -49,6 +51,34 @@ export default function DashboardPage() {
     });
     setFilteredTransactions(newFiltered);
   }, [transactions, currentDateRange]);
+
+  const displayDateText = useMemo(() => {
+    if (!currentDateRange?.from || !currentFilterType) return "";
+
+    const fromDate = currentDateRange.from;
+    const toDate = currentDateRange.to;
+
+    switch (currentFilterType) {
+      case 'today':
+        return format(fromDate, "PPP", { locale: idLocale });
+      case 'last7days':
+        return toDate ? `${format(fromDate, "PPP", { locale: idLocale })} - ${format(toDate, "PPP", { locale: idLocale })}` : format(fromDate, "PPP", { locale: idLocale });
+      case 'thisMonth':
+        return format(fromDate, "MMMM yyyy", { locale: idLocale });
+      case 'thisYear':
+        return format(fromDate, "yyyy", { locale: idLocale });
+      case 'custom':
+        if (!toDate || isSameDay(fromDate, toDate)) {
+          return format(fromDate, "PPP", { locale: idLocale });
+        }
+        return `${format(fromDate, "PPP", { locale: idLocale })} - ${format(toDate, "PPP", { locale: idLocale })}`;
+      default:
+        if (!toDate || isSameDay(fromDate, toDate)) {
+          return format(fromDate, "PPP", { locale: idLocale });
+        }
+        return `${format(fromDate, "PPP", { locale: idLocale })} - ${format(toDate, "PPP", { locale: idLocale })}`;
+    }
+  }, [currentDateRange, currentFilterType]);
 
   if (!isClient || transactionsLoading) {
     return (
@@ -74,11 +104,9 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <div className="flex flex-col w-full sm:w-auto items-stretch sm:items-end">
           <DateRangeFilter onFilterChange={handleFilterChange} />
-          {currentDateRange?.from && (
+          {displayDateText && (
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-center sm:text-right px-1">
-              {!currentDateRange.to || isSameDay(currentDateRange.from, currentDateRange.to)
-                ? format(currentDateRange.from, "PPP", { locale: idLocale })
-                : `${format(currentDateRange.from, "PPP", { locale: idLocale })} - ${format(currentDateRange.to, "PPP", { locale: idLocale })}`}
+              {displayDateText}
             </p>
           )}
         </div>
@@ -104,6 +132,4 @@ export default function DashboardPage() {
     </div>
   );
 }
-
     
-

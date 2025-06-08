@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { LayoutDashboard, Lightbulb, PlusCircle, Settings, BarChart3, CreditCard, User, ScrollText, PieChartIcon } from 'lucide-react';
-import { TransactionDialog } from './TransactionDialog'; 
+import { TransactionDialog } from './TransactionDialog';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -41,6 +41,8 @@ const commonNavItems = [
   { href: '/account', label: 'Akun', icon: User, mobileLabel: 'Akun', mobileIcon: User },
 ];
 
+const standalonePages = ['/login', '/signup']; // Add other standalone pages like /forgot-password if needed
+
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -51,11 +53,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [pageTitle, setPageTitle] = useState('Dasbor');
 
   useEffect(() => {
+    if (standalonePages.includes(pathname)) {
+      // For standalone pages, set a generic title or based on the path
+      if (pathname === '/login') setPageTitle('Login');
+      else if (pathname === '/signup') setPageTitle('Sign Up');
+      else setPageTitle('SpendWise');
+      return;
+    }
+
     const currentNavItem = commonNavItems.find(item => item.href === pathname);
     if (currentNavItem) {
       setPageTitle(isMobile ? currentNavItem.mobileLabel : currentNavItem.label);
     } else {
-      // Fallback for pages not in navItems e.g. /privacy-policy
       const segments = pathname.split('/').filter(Boolean);
       const lastSegment = segments.pop();
       let title = lastSegment ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ') : 'SpendWise';
@@ -86,13 +95,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const handleTransactionDialogChange = (open: boolean) => {
     setIsTransactionDialogOpen(open);
     if (!open) {
-      setTransactionToEdit(null); 
+      setTransactionToEdit(null);
     }
   };
 
   if (isMobile === undefined) {
     return <div className="flex justify-center items-center h-screen"><PlusCircle className="h-8 w-8 animate-spin text-primary" /></div>;
   }
+
+  // If the current page is a standalone page, render children directly
+  if (standalonePages.includes(pathname)) {
+    return (
+      <LayoutActionsContext.Provider value={{ openEditTransactionDialog }}>
+        {children}
+        {/* TransactionDialog is typically part of the main app layout, so it's excluded here.
+            If it needs to be accessible on standalone pages for some reason, it can be added. */}
+      </LayoutActionsContext.Provider>
+    );
+  }
+
 
   return (
     <LayoutActionsContext.Provider value={{ openEditTransactionDialog }}>
@@ -125,7 +146,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1 p-4 pb-20 overflow-auto"> 
+          <main className="flex-1 p-4 pb-20 overflow-auto">
             {children}
           </main>
           <BottomNavigationBar onAddTransactionClick={openAddTransactionDialog} />
@@ -162,8 +183,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarContent>
             <Separator className="my-2 bg-sidebar-border" />
             <SidebarFooter className="p-4 space-y-2">
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   className="w-full justify-start group-data-[collapsible=icon]:justify-center"
                   onClick={openAddTransactionDialog}
                 >
@@ -175,7 +196,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <SidebarInset>
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-                <SidebarTrigger className="sm:hidden" /> 
+                <SidebarTrigger className="sm:hidden" />
                 <div className="flex-1">
                   <h1 className="text-xl font-semibold">{pageTitle}</h1>
                 </div>
@@ -208,8 +229,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarInset>
         </SidebarProvider>
       )}
-      <TransactionDialog 
-        open={isTransactionDialogOpen} 
+      <TransactionDialog
+        open={isTransactionDialogOpen}
         onOpenChange={handleTransactionDialogChange}
         transactionToEdit={transactionToEdit}
         mode={dialogMode}

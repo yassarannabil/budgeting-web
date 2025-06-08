@@ -53,7 +53,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-var(--header-height,0px))] bg-background p-4 py-12 sm:py-16 md:py-20">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4 py-12 sm:py-16 md:py-20">
       <Card className="w-full max-w-md shadow-xl rounded-lg">
         <CardHeader className="text-center space-y-2 pt-8">
           <CardTitle className="text-3xl font-bold tracking-tight text-primary">
@@ -133,8 +133,8 @@ export default function SignupPage() {
                 <p className="text-sm text-destructive">Kata sandi tidak cocok.</p>
               )}
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full h-11 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={isLoadingEmail || isLoadingGoogle || (password !== confirmPassword && !!confirmPassword)}
             >
@@ -163,9 +163,9 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <Button 
-            variant="outline" 
-            className="w-full h-11 text-base font-semibold border-input hover:bg-accent hover:text-accent-foreground" 
+          <Button
+            variant="outline"
+            className="w-full h-11 text-base font-semibold border-input hover:bg-accent hover:text-accent-foreground"
             onClick={handleGoogleSignup}
             disabled={isLoadingEmail || isLoadingGoogle}
           >
@@ -199,5 +199,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-    

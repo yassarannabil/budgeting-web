@@ -177,7 +177,6 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
-        <h1 className="text-2xl font-semibold">Analisa Pengeluaran</h1>
         <div className="flex flex-col w-full sm:w-auto items-stretch sm:items-end">
           <DateRangeFilter onFilterChange={handleFilterChange} />
           <div className="flex items-center justify-center sm:justify-end mt-1 gap-1 w-full">
